@@ -120,7 +120,7 @@ export default function AdminDashboard() {
             <h1 className="font-serif font-bold text-[#001F3F] text-lg sm:text-xl">Admin Overview</h1>
             <p className="text-[10px] sm:text-xs text-gray-400">Sri Murugan Tuition Center – Palani</p>
           </div>
-          <div className="flex no-stack items-center space-x-2 sm:space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <span className="text-[10px] sm:text-xs text-gray-400 hidden xs:inline">Updated: {lastUpdated.toLocaleTimeString('en-IN')}</span>
             <button onClick={loadDashboardData} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
               <RefreshCw size={16} />

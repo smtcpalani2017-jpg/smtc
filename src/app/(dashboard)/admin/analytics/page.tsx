@@ -108,7 +108,7 @@ export default function AdminAnalytics() {
         </header>
 
         {/* Dynamic Insight Panels */}
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
            <div className="bg-slate-900 rounded-[40px] p-8 text-white shadow-2xl relative overflow-hidden group">
               <div className="absolute -right-4 -bottom-4 text-white/5 group-hover:scale-110 transition-transform duration-700"><Flame size={120} /></div>
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-6">Hot Spot: Peak Admission</div>
@@ -135,9 +135,9 @@ export default function AdminAnalytics() {
            </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
            {/* Admissions Bar Chart */}
-           <div className="bg-white rounded-[40px] p-10 border border-slate-100 shadow-sm">
+           <div className="bg-white rounded-[32px] sm:rounded-[40px] p-6 sm:p-10 border border-slate-100 shadow-sm">
               <div className="flex items-center justify-between mb-10">
                  <div>
                     <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Admissions Roadmap</h3>
@@ -159,7 +159,7 @@ export default function AdminAnalytics() {
            </div>
 
            {/* Attendance Trends Area Chart */}
-           <div className="bg-white rounded-[40px] p-10 border border-slate-100 shadow-sm">
+           <div className="bg-white rounded-[32px] sm:rounded-[40px] p-6 sm:p-10 border border-slate-100 shadow-sm">
               <div className="flex items-center justify-between mb-10">
                  <div>
                     <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-1">Attendance Pulse</h3>
@@ -188,9 +188,9 @@ export default function AdminAnalytics() {
         </div>
 
         {/* Global Insight Section */}
-        <div className="bg-slate-900 rounded-[48px] p-12 text-white shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-12 text-white/5 opacity-10"><Target size={250} /></div>
-            <div className="relative z-10 grid grid-cols-2 gap-20">
+        <div className="bg-slate-900 rounded-[32px] sm:rounded-[48px] p-6 sm:p-12 text-white shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-12 text-white/5 opacity-10 hidden sm:block"><Target size={250} /></div>
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-20">
                 <div>
                    <h2 className="text-3xl font-black mb-4 tracking-tight">Growth Diagnostics</h2>
                    <p className="text-slate-400 font-medium leading-relaxed mb-10">
@@ -202,7 +202,7 @@ export default function AdminAnalytics() {
                       <InsightDetail label="System Stability" value="100%" color="emerald" />
                    </div>
                 </div>
-                <div className="flex flex-col justify-center border-l border-white/10 pl-20">
+                <div className="flex flex-col justify-center border-t lg:border-t-0 lg:border-l border-white/10 pt-8 lg:pt-0 lg:pl-20">
                     <div className="space-y-6">
                         <GrowthItem label="Admission Velocity" value="+24%" />
                         <GrowthItem label="Class Capacity Avg" value="78%" />

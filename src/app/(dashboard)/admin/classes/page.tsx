@@ -277,9 +277,9 @@ export default function AdminClassManagement() {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedStudent(null)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" />
               <motion.div 
                 initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-white w-full max-w-2xl rounded-[48px] overflow-hidden shadow-2xl relative z-10"
+                className="bg-white w-full max-w-2xl rounded-[32px] sm:rounded-[48px] overflow-hidden shadow-2xl relative z-10"
               >
-                <div className="bg-slate-900 p-12 text-white relative">
+                <div className="bg-slate-900 p-8 sm:p-12 text-white relative">
                    <button onClick={() => setSelectedStudent(null)} className="absolute top-8 right-8 p-2 hover:bg-white/10 rounded-full transition-all"><X size={20} /></button>
                    <div className="flex items-center gap-8">
                       <div className="w-24 h-24 rounded-3xl bg-white/10 border border-white/20 flex items-center justify-center text-4xl font-black">{selectedStudent.name[0]}</div>
@@ -290,7 +290,7 @@ export default function AdminClassManagement() {
                    </div>
                 </div>
                 
-                <div className="p-12 grid grid-cols-2 gap-10">
+                <div className="p-6 sm:p-12 grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10">
                    <div className="space-y-8">
                       <DetailItem icon={<Phone size={16} />} label="Parent Contact" value={selectedStudent.parent_phone} />
                       <DetailItem icon={<Mail size={16} />} label="Email Address" value={selectedStudent.email || 'Not Provided'} />
@@ -312,7 +312,7 @@ export default function AdminClassManagement() {
            {showModal && (
              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowModal(false)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" />
-                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="bg-white w-full max-w-md rounded-[40px] p-10 shadow-2xl relative z-10">
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="bg-white w-full max-w-md rounded-[32px] sm:rounded-[40px] p-6 sm:p-10 shadow-2xl relative z-10">
                    <h2 className="text-xl font-black text-slate-900 mb-8">{editingClass ? 'Edit Class' : 'Create Class'}</h2>
                    <form onSubmit={handleSubmit} className="space-y-6">
                       <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Class Name</label><input required type="text" value={formData.class_name} onChange={e => setFormData({...formData, class_name: e.target.value})} className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-slate-900" placeholder="e.g. 10th A" /></div>

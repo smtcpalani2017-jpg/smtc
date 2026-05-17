@@ -95,7 +95,7 @@ export default function AdminAttendanceDashboard() {
         </header>
 
         {/* Interaction Summary Cards */}
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
            <SummaryCard 
               label="Total Intake" value={stats.present + stats.absent} icon={<Users size={20} />} 
               isActive={statusFilter === 'all'} onClick={() => setStatusFilter('all')} color="slate"
@@ -111,12 +111,12 @@ export default function AdminAttendanceDashboard() {
         </div>
 
         {/* Compact Analytics & Alerts */}
-        <div className="grid grid-cols-3 gap-6">
-           <div className="col-span-2 bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+           <div className="lg:col-span-2 bg-white rounded-[24px] sm:rounded-[32px] p-4 sm:p-6 border border-slate-100 shadow-sm">
               <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                  <TrendingUp size={14} className="text-emerald-500" /> Class-wise Analytics
               </h3>
-              <div className="grid grid-cols-2 gap-x-10 gap-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-4">
                  {classWiseData.map((cls, i) => (
                     <div key={i} className="space-y-1.5">
                        <div className="flex justify-between items-center">
@@ -131,7 +131,7 @@ export default function AdminAttendanceDashboard() {
               </div>
            </div>
 
-           <div className="bg-rose-50 rounded-[32px] p-6 border border-rose-100 flex flex-col justify-center items-center text-center">
+           <div className="bg-rose-50 rounded-[24px] sm:rounded-[32px] p-4 sm:p-6 border border-rose-100 flex flex-col justify-center items-center text-center">
               <AlertCircle size={24} className="text-rose-500 mb-3" />
               <h3 className="text-[10px] font-black text-rose-700 uppercase tracking-widest mb-1">Defaulter Alert</h3>
               <p className="text-[9px] font-bold text-rose-600/60 leading-tight mb-4">Classes below 80% attendance</p>
@@ -141,8 +141,8 @@ export default function AdminAttendanceDashboard() {
         </div>
 
         {/* Detailed Activity Log */}
-        <div className="bg-white rounded-[40px] border border-slate-100 shadow-xl overflow-hidden">
-           <div className="p-8 border-b border-slate-50 bg-slate-50/20 flex items-center justify-between">
+        <div className="bg-white rounded-[32px] sm:rounded-[40px] border border-slate-100 shadow-xl overflow-hidden">
+           <div className="p-4 sm:p-8 border-b border-slate-50 bg-slate-50/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Attendance Activity Log</h3>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{statusFilter.toUpperCase()} / {selectedClass.toUpperCase()}</p>

@@ -97,7 +97,7 @@ export default function AdminStaffPage() {
           </button>
         </header>
 
-        <div className="bg-white rounded-[48px] border border-slate-100 shadow-xl overflow-hidden">
+        <div className="bg-white rounded-[32px] sm:rounded-[48px] border border-slate-100 shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[700px] text-left">
             <thead>
@@ -159,7 +159,7 @@ export default function AdminStaffPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowForm(false)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" />
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white rounded-[48px] w-full max-w-md p-10 shadow-2xl relative z-10 overflow-hidden"
+              className="bg-white rounded-[32px] sm:rounded-[48px] w-full max-w-md p-6 sm:p-10 shadow-2xl relative z-10 overflow-hidden"
             >
               <div className="flex items-center justify-between mb-10">
                 <h2 className="text-2xl font-black text-slate-900 tracking-tight">{editingStaff ? 'Update Staff' : 'Add Staff'}</h2>

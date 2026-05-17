@@ -300,136 +300,36 @@ body {
 
 /* ===== MOBILE DASHBOARD RESPONSIVENESS OVERRIDES ===== */
 @media (max-width: 768px) {
-  /* Aggressively clear left margins from sidebar and any layout spacers */
-  .ml-64, .ml-20, [class*="ml-64"], [class*="ml-20"], main.ml-64, main.ml-20 {
+  /* Clear sidebar left margins */
+  .ml-64, .ml-20, [class*="ml-64"], [class*="ml-20"] {
     margin-left: 0 !important;
   }
 
-  /* Force standard body-viewport sizing and eliminate horizontal scrolling */
-  body, html, #__next, [className*="min-h-screen"], .min-h-screen {
+  /* Viewport protection */
+  body, html {
     max-width: 100vw !important;
     overflow-x: hidden !important;
   }
 
-  /* Ensure page contents fit mobile boundaries perfectly */
-  main {
-    width: 100% !important;
-    max-width: 100vw !important;
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
-    padding-top: 0.75rem !important;
-    padding-bottom: 0.75rem !important;
-    box-sizing: border-box !important;
-  }
-  
-  /* Premium Responsive Header */
-  main header, header {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 0.75rem !important;
-    height: auto !important;
-    padding-left: 4.25rem !important;
-    padding-right: 0.75rem !important;
-    box-sizing: border-box !important;
-  }
-
-  main header > div, header > div {
-    width: 100% !important;
-  }
-
-  /* Filters Wrapper - Stack inside the white card cleanly */
-  main header .flex:not(.no-stack), header .flex:not(.no-stack) {
-    width: 100% !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 0px !important;
-    box-sizing: border-box !important;
-    border-radius: 1rem !important;
-  }
-
-  .no-stack {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    width: auto !important;
-    gap: 0.5rem !important;
-  }
-
-  main header .flex > div, header .flex > div {
-    width: 100% !important;
-    border-right: none !important;
-    border-bottom: 1px solid #f1f5f9 !important;
-    padding: 0.75rem 1rem !important;
-    box-sizing: border-box !important;
-    justify-content: flex-start !important;
-  }
-
-  main header .flex > div:last-child, header .flex > div:last-child {
-    border-bottom: none !important;
-  }
-
-  /* All large grids stack in a single, neat column */
-  main .grid-cols-4, main .grid-cols-3, main .grid-cols-2 {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-    gap: 0.75rem !important;
-  }
-
-  /* Compact 2-column grid override for stats cards and action lists */
-  main .grid.grid-cols-4, main .flex.gap-6, main .flex.gap-5, main .grid-cols-3.gap-5, main .grid-cols-3.gap-6 {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 0.5rem !important;
-  }
-  
-  /* Intelligent 3-card grid: 3rd card spans 100% width on mobile */
-  main .flex.gap-6 > *:nth-child(3):last-child, 
-  main .flex.gap-5 > *:nth-child(3):last-child,
-  main .grid-cols-3 > *:nth-child(3):last-child,
-  main .grid.grid-cols-3 > *:nth-child(3):last-child {
-    grid-column: span 2 !important;
-    width: 100% !important;
-  }
-
-  /* Clear col-spans to avoid horizontal card squishing */
-  main [class*="col-span-"] {
-    grid-column: span 1 / span 1 !important;
-    width: 100% !important;
-  }
-
-  /* Tables must scroll horizontally on mobile without breaking page width */
+  /* Tables must scroll horizontally on mobile */
   main .overflow-hidden {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   main table {
-    width: 100% !important;
-    min-width: 600px !important; /* Ensures readable columns */
+    min-width: 600px !important;
   }
 
-  /* Reduce table cell padding on mobile for optimal text density and readability */
-  main table th, main table td {
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
-    padding-top: 1rem !important;
-    padding-bottom: 1rem !important;
-  }
-
-  /* Force hover-hidden buttons to be fully visible and static on mobile */
-  main .group-hover\:opacity-100,
-  main .opacity-0.group-hover\:opacity-100,
-  main [class*="group-hover\:opacity-100"] {
+  /* Force hover-hidden action buttons to be visible on touch devices */
+  main .opacity-0[class*="group-hover"],
+  main [class*="group-hover\\:opacity-100"] {
     opacity: 1 !important;
     transform: none !important;
     translate: none !important;
   }
 
-  /* Force white color on dark-themed section titles */
-  .section-title.text-white {
-    color: #ffffff !important;
-  }
-
-  /* Hide heavy decorative background blur blobs on mobile to eliminate GPU rendering glitches and maximize scroll performance */
+  /* Hide heavy decorative blur blobs to prevent GPU rendering glitches */
   main div[class*="rounded-full"][class*="blur-"],
   main div[class*="rounded-full"][class*="blur["],
   .absolute.rounded-full[class*="blur-"],
@@ -437,15 +337,13 @@ body {
     display: none !important;
   }
 
-  /* GPU / Hardware Acceleration Performance fixes to prevent mobile rendering glitches */
+  /* GPU rendering fix */
   .gpu-accelerated-container {
     position: relative !important;
     overflow: hidden !important;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     transform: translate3d(0, 0, 0);
-    -webkit-transform: translate3d(0, 0, 0);
-    will-change: transform, opacity;
   }
 
   .gpu-accelerated-content {
@@ -454,25 +352,17 @@ body {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     transform: translateZ(0);
-    -webkit-transform: translateZ(0);
   }
 
-
-  /* Recharts Charts / Containers responsiveness */
+  /* Recharts Charts responsiveness */
   .recharts-responsive-container {
     width: 100% !important;
     min-width: 100% !important;
   }
 
-  
-  /* Flex wrappers wrapping search + inputs */
-  .flex-wrap {
-    flex-direction: column !important;
-    align-items: stretch !important;
-  }
-  
-  .flex-wrap > * {
-    width: 100% !important;
+  /* Force white color on dark section titles */
+  .section-title.text-white {
+    color: #ffffff !important;
   }
 }
 

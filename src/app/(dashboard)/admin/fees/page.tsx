@@ -138,7 +138,7 @@ export default function AdminFeesPage() {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-10">
-                <div className="col-span-1 lg:col-span-2 bg-white rounded-[40px] p-6 sm:p-10 border border-slate-100 shadow-sm">
+                <div className="col-span-1 lg:col-span-2 bg-white rounded-[32px] sm:rounded-[40px] p-6 sm:p-10 border border-slate-100 shadow-sm">
                    <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-10 flex items-center gap-3">
                       <BarChart3 size={18} className="text-amber-500" /> Class-wise Collection
                    </h2>
@@ -163,7 +163,7 @@ export default function AdminFeesPage() {
                    </div>
                 </div>
 
-                <div className="bg-white rounded-[40px] p-6 sm:p-10 border border-slate-100 shadow-sm overflow-hidden">
+                <div className="bg-white rounded-[32px] sm:rounded-[40px] p-6 sm:p-10 border border-slate-100 shadow-sm overflow-hidden">
                    <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-8">Recent Payments</h2>
                    <div className="space-y-6">
                       {transactions.slice(0, 8).map((t, i) => (
@@ -190,7 +190,8 @@ export default function AdminFeesPage() {
                   <StatusBtn label="Unpaid" active={statusFilter === 'unpaid'} onClick={() => setStatusFilter('unpaid')} color="rose" icon={<XCircle size={14} />} />
                </div>
 
-               <div className="bg-white rounded-[48px] border border-slate-100 shadow-2xl overflow-hidden">
+               <div className="bg-white rounded-[32px] sm:rounded-[48px] border border-slate-100 shadow-2xl overflow-hidden">
+                  <div className="overflow-x-auto">
                   <table className="w-full text-left">
                      <thead>
                         <tr className="bg-slate-50/50">
@@ -224,6 +225,7 @@ export default function AdminFeesPage() {
                         ))}
                      </tbody>
                   </table>
+                  </div>
                </div>
             </motion.div>
           )}
