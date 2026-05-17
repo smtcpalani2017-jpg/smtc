@@ -149,7 +149,7 @@ export default function LoginPage() {
                 <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
                   {error && (
                     <div className="bg-red-50 border border-red-100 p-4 rounded-xl sm:rounded-2xl flex items-center gap-3 text-red-500 text-xs sm:text-sm">
-                      <AlertCircle size={16} sm={18} />
+                      <AlertCircle size={16} className="sm:w-[18px] sm:h-[18px] shrink-0" />
                       <span className="font-bold">{error}</span>
                     </div>
                   )}
@@ -157,7 +157,7 @@ export default function LoginPage() {
                   <div className="space-y-2">
                     <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
                     <div className="relative group">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-gold transition-colors" size={18} sm={20} />
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-gold transition-colors sm:w-5 sm:h-5" size={18} />
                       <input 
                         type="email" required placeholder="name@smtc.edu"
                         value={email} onChange={(e) => setEmail(e.target.value)}
@@ -169,7 +169,7 @@ export default function LoginPage() {
                   <div className="space-y-2">
                     <label className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Password</label>
                     <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-gold transition-colors" size={18} sm={20} />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-gold transition-colors sm:w-5 sm:h-5" size={18} />
                       <input 
                         type="password" required placeholder="••••••••"
                         value={password} onChange={(e) => setPassword(e.target.value)}
@@ -182,7 +182,7 @@ export default function LoginPage() {
                     type="submit" disabled={loading}
                     className="w-full bg-navy text-gold py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-widest hover:bg-navy-light transition-all flex items-center justify-center space-x-2"
                   >
-                    {loading ? <Loader2 className="animate-spin" /> : <><span>Enter Portal</span><LogIn size={18} sm={20} /></>}
+                    {loading ? <Loader2 className="animate-spin" /> : <><span>Enter Portal</span><LogIn size={18} className="sm:w-5 sm:h-5" /></>}
                   </button>
                 </form>
               </motion.div>

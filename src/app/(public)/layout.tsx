@@ -1,4 +1,5 @@
 import { LanguageProvider } from '@/context/LanguageContext'
+import WhatsAppButton from '@/components/layout/WhatsAppButton'
 
 export default function PublicLayout({
   children,
@@ -8,6 +9,8 @@ export default function PublicLayout({
   return (
     <LanguageProvider>
       {children}
+      <WhatsAppButton />
     </LanguageProvider>
   )
 }
+

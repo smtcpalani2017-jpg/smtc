@@ -127,9 +127,21 @@ const Footer = () => {
                   <div className="mt-1 w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center shrink-0 group-hover:bg-gold/20 transition-colors">
                     <Phone className="text-gold h-4 w-4" />
                   </div>
-                  <div className="flex flex-col text-white/40 text-sm">
-                    <a href="tel:+918526007178" className="hover:text-gold transition-colors">+91 85260 07178</a>
-                    <a href="tel:+916382752224" className="hover:text-gold transition-colors">+91 63827 52224</a>
+                  <div className="flex flex-col text-white/50 text-sm space-y-2">
+                    <a 
+                      href="tel:+918526007178" 
+                      className="flex items-center space-x-2 text-white/80 hover:text-gold transition-all duration-300 font-bold hover:translate-x-1 active:scale-95"
+                    >
+                      <Phone size={13} className="text-gold shrink-0 animate-pulse" />
+                      <span>+91 85260 07178</span>
+                    </a>
+                    <a 
+                      href="tel:+916382752224" 
+                      className="flex items-center space-x-2 text-white/80 hover:text-gold transition-all duration-300 font-bold hover:translate-x-1 active:scale-95"
+                    >
+                      <Phone size={13} className="text-gold shrink-0 animate-pulse" />
+                      <span>+91 63827 52224</span>
+                    </a>
                   </div>
                 </li>
                 <li className="flex items-center space-x-3 group">

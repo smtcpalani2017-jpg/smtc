@@ -84,12 +84,24 @@ export default function ContactPage() {
                     <ContactInfoItem 
                       icon={<Phone className="text-gold" />}
                       title={t('contact.call')}
-                      content={
-                        <div className="flex flex-col">
-                          <a href="tel:+918526007178" className="hover:text-gold text-navy transition-colors font-medium">+91 85260 07178</a>
-                          <a href="tel:+916382752224" className="hover:text-gold text-navy transition-colors font-medium">+91 63827 52224</a>
-                        </div>
-                      }
+                    content={
+                      <div className="flex flex-col space-y-3 mt-1">
+                        <a 
+                          href="tel:+918526007178" 
+                          className="flex items-center space-x-2 text-navy hover:text-gold transition-all duration-300 font-extrabold text-lg hover:translate-x-1 active:scale-95"
+                        >
+                          <Phone size={16} className="text-gold shrink-0 animate-pulse" />
+                          <span>+91 85260 07178</span>
+                        </a>
+                        <a 
+                          href="tel:+916382752224" 
+                          className="flex items-center space-x-2 text-navy hover:text-gold transition-all duration-300 font-extrabold text-lg hover:translate-x-1 active:scale-95"
+                        >
+                          <Phone size={16} className="text-gold shrink-0 animate-pulse" />
+                          <span>+91 63827 52224</span>
+                        </a>
+                      </div>
+                    }
                     />
                     <ContactInfoItem 
                       icon={<Mail className="text-gold" />}

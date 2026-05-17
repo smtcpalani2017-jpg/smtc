@@ -6,21 +6,62 @@ import Navbar from '@/components/layout/Navbar'
 import Hero from '@/components/layout/Hero'
 import Stats from '@/components/layout/Stats'
 import Footer from '@/components/layout/Footer'
-import { CheckCircle2, Star, TrendingUp, Users2, BookOpen, Trophy, GraduationCap, ArrowRight, User, Beaker, Dna, Calculator, Globe2, Award, Quote } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { CheckCircle2, Star, TrendingUp, Users2, BookOpen, Trophy, GraduationCap, ArrowRight, User, Beaker, Dna, Calculator, Globe2, Award, Quote, ChevronLeft, ChevronRight } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useLanguage } from '@/context/LanguageContext'
 
 const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0 } }
 
+/* ===== CUSTOM SKELETON SHIMMER LOADERS ===== */
+const CourseSkeleton = () => (
+  <div className="bg-white p-8 rounded-3xl border border-gray-100 animate-pulse h-full space-y-6">
+    <div className="w-16 h-16 bg-gray-100 rounded-2xl" />
+    <div className="h-6 bg-gray-100 rounded w-2/3" />
+    <div className="space-y-2">
+      <div className="h-4 bg-gray-100 rounded w-full" />
+      <div className="h-4 bg-gray-100 rounded w-5/6" />
+    </div>
+  </div>
+)
+
+const ResultSkeleton = () => (
+  <div className="w-full max-w-md h-[450px] bg-white/5 rounded-[40px] p-10 border border-white/10 animate-pulse flex flex-col justify-between">
+    <div className="flex justify-between items-start">
+      <div className="w-24 h-24 bg-white/10 rounded-3xl border border-white/5" />
+      <div className="w-28 h-8 bg-white/10 rounded-full" />
+    </div>
+    <div className="space-y-4">
+      <div className="w-12 h-12 bg-white/10 rounded-full" />
+      <div className="h-10 bg-white/10 rounded w-3/4" />
+      <div className="h-6 bg-white/10 rounded w-1/2" />
+    </div>
+    <div className="h-6 bg-white/10 rounded w-2/3" />
+  </div>
+)
+
+const FacultySkeleton = () => (
+  <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 animate-pulse h-full flex flex-col">
+    <div className="aspect-[3/4] bg-gray-200" />
+    <div className="p-6 space-y-4 flex flex-col flex-1">
+      <div className="h-6 bg-gray-200 rounded w-3/4" />
+      <div className="grid grid-cols-2 gap-3 mt-auto">
+        <div className="h-10 bg-gray-100 rounded" />
+        <div className="h-10 bg-gray-100 rounded" />
+      </div>
+    </div>
+  </div>
+)
+
+/* ===== RESULTS CAROUSEL ===== */
 function ResultCarousel({ results }: { results: any[] }) {
   const [index, setIndex] = useState(0)
 
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % results.length)
-    }, 2500)
+    }, 2800)
     return () => clearInterval(timer)
   }, [results.length])
 
@@ -37,9 +78,16 @@ function ResultCarousel({ results }: { results: any[] }) {
     >
       <div className="glass rounded-[40px] p-10 border border-white/10 hover:bg-white/10 transition-all duration-500 h-full flex flex-col justify-between shadow-2xl">
         <div className="flex justify-between items-start">
-           <div className="w-24 h-24 bg-gold/20 rounded-3xl border-4 border-gold/30 flex items-center justify-center overflow-hidden shadow-lg">
+           <div className="w-24 h-24 bg-gold/20 rounded-3xl border-4 border-gold/30 flex items-center justify-center overflow-hidden shadow-lg relative">
              {r.image_url ? (
-               <img src={r.image_url} alt={r.student_name} className="w-full h-full object-cover" />
+               <Image 
+                 src={r.image_url} 
+                 alt={r.student_name} 
+                 fill 
+                 sizes="(max-width: 480px) 150px, 200px"
+                 className="object-cover" 
+                 loading="lazy"
+               />
              ) : (
                <GraduationCap className="h-12 w-12 text-gold" />
              )}
@@ -63,6 +111,102 @@ function ResultCarousel({ results }: { results: any[] }) {
         </div>
       </div>
     </motion.div>
+  )
+}
+
+/* ===== UNIQUE TESTIMONIALS CAROUSEL ===== */
+const testimonials = [
+  { name: 'Mrs. Lakshmi', role: 'Parent of 12th Student', text: 'My daughter scored exceptionally well in her board exams. The teaching methodology for Math and Science is simply the best in Palani.' },
+  { name: 'Mr. Rajesh Kumar', role: 'Parent of 10th Student', text: 'SMTC transformed my son from an average student to a top achiever in all school subjects. The personal attention is remarkable.' },
+  { name: 'Divya Priya', role: 'Spoken English Student', text: 'The Spoken English classes at SMTC are amazing. I feel so much more confident speaking English now, and it has helped my school performance too.' },
+  { name: 'Mr. Arun V.', role: 'Parent of 8th Student', text: 'Highly professional coaching for school students. The conceptual clarity given at SMTC is outstanding. My son loves his classes here.' },
+  { name: 'Mrs. Selvi M.', role: 'Parent of 12th Student', text: 'A perfect place for students to build their foundation. My son improved drastically in English and Mathematics thanks to the expert faculty.' }
+]
+
+function TestimonialCarousel() {
+  const [index, setIndex] = useState(0)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % testimonials.length)
+    }, 4500)
+    return () => clearInterval(timer)
+  }, [])
+
+  const next = () => setIndex((prev) => (prev + 1) % testimonials.length)
+  const prev = () => setIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)
+
+  const t = testimonials[index]
+
+  return (
+    <div className="relative max-w-4xl mx-auto px-4">
+      <div className="relative min-h-[300px] bg-white p-8 sm:p-12 rounded-[32px] sm:rounded-[50px] border border-gray-100 shadow-xl flex flex-col justify-between overflow-hidden">
+        <Quote className="absolute top-8 right-8 sm:top-10 sm:right-12 h-16 w-16 text-gold/5" />
+        
+        <div className="space-y-6">
+          <div className="flex items-center space-x-1">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <Star key={s} size={20} className="text-gold fill-gold" />
+            ))}
+          </div>
+          
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={index}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.4 }}
+              className="text-gray-600 text-lg sm:text-xl leading-relaxed italic font-medium"
+            >
+              &ldquo;{t.text}&rdquo;
+            </motion.p>
+          </AnimatePresence>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-8 border-t border-gray-50 mt-8 gap-4">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 rounded-xl bg-navy text-gold flex items-center justify-center font-bold text-lg shadow-lg shadow-navy/20">
+              {t.name[0]}
+            </div>
+            <div>
+              <div className="font-bold text-navy text-base sm:text-lg">{t.name}</div>
+              <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest">{t.role}</div>
+            </div>
+          </div>
+
+          {/* Navigation Controls */}
+          <div className="flex items-center space-x-3 w-full sm:w-auto justify-end">
+            <button 
+              onClick={prev}
+              className="w-10 h-10 rounded-full border border-gray-200 hover:border-gold hover:text-gold flex items-center justify-center text-navy transition-all active:scale-90"
+              aria-label="Previous testimonial"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <button 
+              onClick={next}
+              className="w-10 h-10 rounded-full border border-gray-200 hover:border-gold hover:text-gold flex items-center justify-center text-navy transition-all active:scale-90"
+              aria-label="Next testimonial"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Dots Indicator */}
+      <div className="flex justify-center space-x-2 mt-6">
+        {testimonials.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setIndex(i)}
+            className={`h-2 rounded-full transition-all duration-300 ${i === index ? 'w-8 bg-gold' : 'w-2 bg-gray-200'}`}
+            aria-label={`Go to slide ${i + 1}`}
+          />
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -113,9 +257,16 @@ export default function Home() {
               <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl border-4 border-white">
                 <div className="aspect-video bg-gradient-to-br from-navy-dark to-navy flex items-center justify-center p-12 relative">
                   <div className="absolute inset-0 bg-[url('/smtc-logo.png')] bg-center bg-no-repeat bg-contain opacity-[0.06]" />
-                  <div className="text-center relative z-10">
-                    <div className="relative w-24 h-24 mx-auto mb-4">
-                      <Image src="/smtc-logo.png" alt="SMTC" fill className="object-contain" />
+                  <div className="text-center relative z-10 w-full">
+                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 mx-auto mb-4 bg-white rounded-full p-2.5 shadow-lg">
+                      <Image 
+                        src="/smtc-logo.png" 
+                        alt="SMTC Logo" 
+                        fill 
+                        sizes="(max-width: 480px) 150px, (max-width: 768px) 250px, 400px"
+                        className="object-contain" 
+                        loading="lazy"
+                      />
                     </div>
                     <h3 className="text-white font-serif text-2xl">Institutional Excellence</h3>
                     <p className="text-gold/60 italic text-sm mt-2">Since 2017 &bull; Palani</p>
@@ -157,7 +308,11 @@ export default function Home() {
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             {loading ? (
-              <div className="col-span-full text-center py-12 text-gray-400">Loading Courses...</div>
+              <>
+                <CourseSkeleton />
+                <CourseSkeleton />
+                <CourseSkeleton />
+              </>
             ) : courses.length === 0 ? (
               <div className="col-span-full text-center py-12 text-gray-400 italic">No courses listed yet.</div>
             ) : courses.map((course: any, i: number) => (
@@ -217,7 +372,7 @@ export default function Home() {
             <div className="lg:w-1/2 w-full flex justify-center">
                <div className="w-full max-w-md h-[450px] relative">
                   {loading ? (
-                    <div className="absolute inset-0 flex items-center justify-center text-white/20 italic">Loading Achievers...</div>
+                    <ResultSkeleton />
                   ) : results.length === 0 ? (
                     <div className="absolute inset-0 flex items-center justify-center text-white/20 italic">Results coming soon...</div>
                   ) : (
@@ -238,7 +393,12 @@ export default function Home() {
           </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
             {loading ? (
-              <div className="col-span-full text-center py-12 text-gray-400">Loading Mentors...</div>
+              <>
+                <FacultySkeleton />
+                <FacultySkeleton />
+                <FacultySkeleton />
+                <FacultySkeleton />
+              </>
             ) : faculty.length === 0 ? (
               <div className="col-span-full text-center py-12 text-gray-400 italic">Faculty profiles coming soon...</div>
             ) : faculty.map((f: any, i: number) => (
@@ -246,7 +406,14 @@ export default function Home() {
                 <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 group hover:shadow-2xl hover:shadow-navy/10 transition-all duration-500 hover:-translate-y-3 h-full flex flex-col">
                   <div className="aspect-[3/4] bg-gradient-to-br from-[#001F3F] to-[#001229] flex items-center justify-center relative overflow-hidden shrink-0">
                     {f.image_url ? (
-                      <img src={f.image_url} alt={f.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      <Image 
+                        src={f.image_url} 
+                        alt={f.name} 
+                        fill 
+                        sizes="(max-width: 480px) 150px, (max-width: 768px) 250px, 350px"
+                        className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                        loading="lazy"
+                      />
                     ) : (
                       <User size={70} className="text-white/10 group-hover:scale-125 transition-transform duration-700" />
                     )}
@@ -280,7 +447,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== TESTIMONIALS (INFINITE SCROLL) ===== */}
+      {/* ===== TESTIMONIALS (UNIQUE CAROUSEL) ===== */}
       <section className="py-28 bg-academic-white relative overflow-hidden">
         <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-navy/3 rounded-full blur-[150px]" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 mb-16">
@@ -290,48 +457,7 @@ export default function Home() {
           </motion.div>
         </div>
 
-        {/* Marquee Container with Gradient Fades */}
-        <div className="relative flex overflow-hidden group py-12">
-          {/* Edge Fades */}
-          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-academic-white to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-academic-white to-transparent z-10 pointer-events-none" />
-
-          <motion.div 
-            className="flex space-x-10 whitespace-nowrap"
-            animate={{ x: [0, -1920] }}
-            transition={{ 
-              x: { repeat: Infinity, repeatType: "loop", duration: 40, ease: "linear" }
-            }}
-            whileHover={{ transition: { duration: 0 } }} // Pause logic could be more complex, but linear animation is tricky to 'pause' smoothly without state. We'll keep it slow and smooth.
-          >
-            {[...Array(2)].map((_, listIdx) => (
-              <div key={listIdx} className="flex space-x-10 pr-10">
-                {[
-                  { name: 'Mrs. Lakshmi', role: 'Parent of 12th Student', text: 'My daughter scored exceptionally well in her board exams. The teaching methodology for Math and Science is simply the best in Palani.' },
-                  { name: 'Mr. Rajesh Kumar', role: 'Parent of 10th Student', text: 'SMTC transformed my son from an average student to a top achiever in all school subjects. The personal attention is remarkable.' },
-                  { name: 'Divya Priya', role: 'Spoken English Student', text: 'The Spoken English classes at SMTC are amazing. I feel so much more confident speaking English now, and it has helped my school performance too.' },
-                  { name: 'Mr. Arun V.', role: 'Parent of 8th Student', text: 'Highly professional coaching for school students. The conceptual clarity given at SMTC is outstanding. My son loves his classes here.' },
-                  { name: 'Mrs. Selvi M.', role: 'Parent of 12th Student', text: 'A perfect place for students to build their foundation. My son improved drastically in English and Mathematics thanks to the expert faculty.' }
-                ].map((t, i) => (
-                  <div key={i} className="w-[450px] bg-white p-12 rounded-[50px] border border-gray-100 shadow-xl group-hover:shadow-2xl group-hover:shadow-gold/10 transition-all duration-700 relative whitespace-normal inline-block hover:-translate-y-3 mb-8">
-                    <Quote className="absolute top-10 right-12 h-12 w-12 text-gold/10" />
-                    <div className="flex items-center space-x-1 mb-6">
-                      {[1,2,3,4,5].map(s => <Star key={s} size={18} className="text-gold fill-gold" />)}
-                    </div>
-                    <p className="text-gray-600 text-lg leading-relaxed mb-10 italic font-medium">&ldquo;{t.text}&rdquo;</p>
-                    <div className="flex items-center space-x-5 pt-8 border-t border-gray-50">
-                      <div className="w-14 h-14 rounded-2xl bg-navy text-gold flex items-center justify-center font-bold text-xl shadow-xl shadow-navy/20">{t.name[0]}</div>
-                      <div>
-                        <div className="font-bold text-navy text-lg">{t.name}</div>
-                        <div className="text-[11px] text-gray-400 font-black uppercase tracking-widest">{t.role}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </motion.div>
-        </div>
+        <TestimonialCarousel />
       </section>
 
       <Footer />
