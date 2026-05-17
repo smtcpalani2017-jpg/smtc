@@ -338,13 +338,21 @@ body {
   }
 
   /* Filters Wrapper - Stack inside the white card cleanly */
-  main header .flex, header .flex {
+  main header .flex:not(.no-stack), header .flex:not(.no-stack) {
     width: 100% !important;
     flex-direction: column !important;
     align-items: stretch !important;
     gap: 0px !important;
     box-sizing: border-box !important;
     border-radius: 1rem !important;
+  }
+
+  .no-stack {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    width: auto !important;
+    gap: 0.5rem !important;
   }
 
   main header .flex > div, header .flex > div {
