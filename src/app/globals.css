@@ -416,6 +416,20 @@ body {
     translate: none !important;
   }
 
+  /* Force white color on dark-themed section titles */
+  .section-title.text-white {
+    color: #ffffff !important;
+  }
+
+  /* Hide heavy decorative background blur blobs on mobile to eliminate GPU rendering glitches and maximize scroll performance */
+  main div[class*="rounded-full"][class*="blur-"],
+  main div[class*="rounded-full"][class*="blur["],
+  .absolute.rounded-full[class*="blur-"],
+  .absolute.rounded-full[class*="blur["] {
+    display: none !important;
+  }
+
+
   /* Recharts Charts / Containers responsiveness */
   .recharts-responsive-container {
     width: 100% !important;
