@@ -95,7 +95,7 @@ export default function AdminAttendanceDashboard() {
         </header>
 
         {/* Interaction Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-5">
            <SummaryCard 
               label="Total Intake" value={stats.present + stats.absent} icon={<Users size={20} />} 
               isActive={statusFilter === 'all'} onClick={() => setStatusFilter('all')} color="slate"
@@ -205,17 +205,22 @@ export default function AdminAttendanceDashboard() {
 
 function SummaryCard({ label, value, icon, isActive, onClick, color }: any) {
   const themes: any = {
-    slate: isActive ? 'bg-slate-900 text-white shadow-xl scale-[1.02]' : 'bg-white text-slate-900 border-slate-100 hover:border-slate-300',
-    emerald: isActive ? 'bg-emerald-500 text-white shadow-xl scale-[1.02]' : 'bg-white text-emerald-600 border-slate-100 hover:border-emerald-500',
-    rose: isActive ? 'bg-rose-500 text-white shadow-xl scale-[1.02]' : 'bg-white text-rose-600 border-slate-100 hover:border-rose-500'
+    slate: isActive ? 'bg-slate-900 text-white shadow-xl scale-[1.02]' : 'bg-white text-slate-950 border-slate-100 hover:border-slate-350 hover:shadow-md',
+    emerald: isActive ? 'bg-emerald-500 text-white shadow-xl scale-[1.02]' : 'bg-white text-emerald-600 border-slate-100 hover:border-emerald-500 hover:shadow-md',
+    rose: isActive ? 'bg-rose-500 text-white shadow-xl scale-[1.02]' : 'bg-white text-rose-600 border-slate-100 hover:border-rose-500 hover:shadow-md'
   }
 
   return (
-    <button onClick={onClick} className={`text-left rounded-[28px] p-6 transition-all duration-300 border shadow-sm relative overflow-hidden flex items-center gap-4 ${themes[color]}`}>
-       <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${isActive ? 'bg-white/10' : 'bg-slate-50'}`}>{icon}</div>
-       <div>
-          <div className="text-3xl font-black mb-0.5 leading-none">{value}</div>
-          <div className={`text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-white/40' : 'text-slate-400'}`}>{label}</div>
+    <button 
+      onClick={onClick} 
+      className={`text-center sm:text-left rounded-[22px] sm:rounded-[28px] p-3.5 sm:p-6 transition-all duration-300 border shadow-sm relative overflow-hidden flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full ${themes[color]}`}
+    >
+       <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center ${isActive ? 'bg-white/10' : 'bg-slate-50'} shrink-0`}>
+         {React.cloneElement(icon, { className: 'w-4 h-4 sm:w-5 sm:h-5' })}
+       </div>
+       <div className="flex flex-col items-center sm:items-start">
+          <div className="text-xl sm:text-3xl font-black mb-0.5 leading-none tracking-tight">{value}</div>
+          <div className={`text-[7px] sm:text-[9px] font-black uppercase tracking-wider ${isActive ? 'text-white/50' : 'text-slate-400'} text-center sm:text-left`}>{label}</div>
        </div>
     </button>
   )
