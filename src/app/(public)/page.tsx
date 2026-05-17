@@ -181,7 +181,7 @@ export default function Home() {
       </section>
 
       {/* ===== RESULTS ===== */}
-      <section className="py-28 gradient-hero text-white relative overflow-hidden">
+      <section className="py-28 gradient-hero text-white relative overflow-hidden gpu-accelerated-container">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 right-20 w-[400px] h-[400px] bg-gold/5 rounded-full blur-[100px]" />
           <div className="absolute bottom-20 left-10 w-[300px] h-[300px] bg-gold/4 rounded-full blur-[80px]" />
@@ -192,7 +192,7 @@ export default function Home() {
                <h2 className="section-title text-white">Proven Excellence</h2>
                <p className="text-white/50 mb-12 text-lg leading-relaxed max-w-xl">From 6th Standard to Board Exams, our students consistently achieve top marks across all subjects and excel in our Spoken English programs.</p>
                
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12 gpu-accelerated-content">
                  {[
                    { icon: <Trophy size={24} />, val: '100%', label: 'Pass Percentage' },
                    { icon: <Star size={24} />, val: 'A+', label: 'Grade Average' },

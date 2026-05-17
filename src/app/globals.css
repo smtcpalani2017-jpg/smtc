@@ -429,12 +429,33 @@ body {
     display: none !important;
   }
 
+  /* GPU / Hardware Acceleration Performance fixes to prevent mobile rendering glitches */
+  .gpu-accelerated-container {
+    position: relative !important;
+    overflow: hidden !important;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+    will-change: transform, opacity;
+  }
+
+  .gpu-accelerated-content {
+    position: relative !important;
+    z-index: 10 !important;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+
 
   /* Recharts Charts / Containers responsiveness */
   .recharts-responsive-container {
     width: 100% !important;
     min-width: 100% !important;
   }
+
   
   /* Flex wrappers wrapping search + inputs */
   .flex-wrap {
