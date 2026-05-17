@@ -227,16 +227,16 @@ export default function WebsiteManagement() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                {courses.map(c => (
-                 <div key={c.id} className="bg-white p-8 rounded-[40px] border border-gray-100 space-y-6 hover:border-gold transition-all group">
-                    <div className="flex items-center justify-between">
-                       <div className="flex items-center gap-4">
-                          <div className="p-3 bg-navy text-gold rounded-2xl">{ICON_OPTIONS[c.icon_name as keyof typeof ICON_OPTIONS] || <BookOpen size={24} />}</div>
-                          <input defaultValue={c.title} onBlur={e => handleUpdate('website_courses', c.id, { title: e.target.value })} className="bg-transparent border-none font-bold text-navy text-lg focus:ring-0" />
-                       </div>
-                       <button onClick={() => handleDelete('website_courses', c.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all p-2 bg-red-50 rounded-xl"><Trash2 size={20} /></button>
-                    </div>
+                  <div key={c.id} className="bg-white p-4 sm:p-8 rounded-[30px] sm:rounded-[40px] border border-gray-100 space-y-4 sm:space-y-6 hover:border-gold transition-all group">
+                     <div className="flex items-center justify-between gap-3 min-w-0">
+                        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                           <div className="p-2.5 sm:p-3 bg-navy text-gold rounded-2xl shrink-0">{ICON_OPTIONS[c.icon_name as keyof typeof ICON_OPTIONS] || <BookOpen size={24} />}</div>
+                           <input defaultValue={c.title} onBlur={e => handleUpdate('website_courses', c.id, { title: e.target.value })} className="w-full min-w-0 bg-transparent border-none font-bold text-navy text-base sm:text-lg focus:ring-0 p-0" />
+                        </div>
+                        <button onClick={() => handleDelete('website_courses', c.id)} className="sm:opacity-0 sm:group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all p-2 bg-red-50 rounded-xl shrink-0"><Trash2 size={18} /></button>
+                     </div>
                     <textarea defaultValue={c.description} onBlur={e => handleUpdate('website_courses', c.id, { description: e.target.value })} rows={3} className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm text-gray-500 resize-none focus:ring-gold" />
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                     <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-gray-50">
                        <div className="flex gap-2">
                           {Object.keys(ICON_OPTIONS).map(icon => (
                             <button key={icon} onClick={() => handleUpdate('website_courses', c.id, { icon_name: icon })} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${c.icon_name === icon ? 'bg-gold text-navy shadow-lg' : 'bg-gray-100 text-gray-400'}`}>{icon[0]}</button>
