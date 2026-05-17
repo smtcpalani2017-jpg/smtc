@@ -97,7 +97,7 @@ export default function AdminStaffPage() {
           </button>
         </header>
 
-        <div className="bg-white rounded-[32px] sm:rounded-[48px] border border-slate-100 shadow-xl overflow-hidden">
+        <div className="bg-white rounded-[32px] sm:rounded-[48px] border border-slate-100 shadow-xl overflow-x-auto">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[700px] text-left">
             <thead>
@@ -135,7 +135,7 @@ export default function AdminStaffPage() {
                     <span className="bg-emerald-50 text-emerald-600 px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest inline-block border border-emerald-100">Active</span>
                   </td>
                   <td className="px-10 py-6 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                    <div className="flex items-center justify-end gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-all sm:translate-x-4 sm:group-hover:translate-x-0">
                       <button onClick={() => openEdit(s)} className="p-2.5 bg-slate-100 text-slate-900 rounded-xl hover:bg-slate-900 hover:text-white transition-all shadow-sm">
                         <Edit2 size={14} />
                       </button>

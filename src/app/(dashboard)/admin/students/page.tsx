@@ -111,7 +111,7 @@ export default function AdminStudentsPage() {
           </div>
 
           {/* Table */}
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-x-auto">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[800px]">
                 <thead>

@@ -181,7 +181,7 @@ export default function AdminClassManagement() {
                ))}
             </motion.div>
           ) : activeTab === 'students' ? (
-             <motion.div key="students" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="bg-white rounded-[48px] border border-slate-100 shadow-xl overflow-hidden">
+             <motion.div key="students" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="bg-white rounded-[48px] border border-slate-100 shadow-xl overflow-x-auto">
                 <table className="w-full text-left">
                    <thead>
                       <tr className="bg-slate-50/50">
@@ -228,7 +228,7 @@ export default function AdminClassManagement() {
                 ))}
              </motion.div>
           ) : (
-            <motion.div key="results-detail" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[48px] border border-slate-100 shadow-xl overflow-hidden">
+            <motion.div key="results-detail" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[48px] border border-slate-100 shadow-xl overflow-x-auto">
                 <div className="p-10 border-b border-slate-50 bg-slate-50/20 flex items-center justify-between">
                     <div className="flex items-center gap-5">
                         <div className="bg-slate-900 text-white p-4 rounded-2xl shadow-lg shadow-slate-900/20"><BarChart3 size={24} /></div>

@@ -106,7 +106,7 @@ export default function AdminMarksPage() {
           </div>
 
           {/* Marks Table */}
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-x-auto">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <h2 className="font-serif font-bold text-[#001F3F] text-base">All Test Records</h2>
               <select value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)}

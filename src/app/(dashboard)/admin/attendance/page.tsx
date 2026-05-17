@@ -141,7 +141,7 @@ export default function AdminAttendanceDashboard() {
         </div>
 
         {/* Detailed Activity Log */}
-        <div className="bg-white rounded-[32px] sm:rounded-[40px] border border-slate-100 shadow-xl overflow-hidden">
+        <div className="bg-white rounded-[32px] sm:rounded-[40px] border border-slate-100 shadow-xl overflow-x-auto">
            <div className="p-4 sm:p-8 border-b border-slate-50 bg-slate-50/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Attendance Activity Log</h3>
