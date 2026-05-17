@@ -193,23 +193,23 @@ export default function WebsiteManagement() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                {faculty.map(f => (
-                 <div key={f.id} className="bg-white p-6 rounded-3xl border border-gray-100 flex items-center gap-6 group hover:border-gold transition-all">
-                    <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-gray-50 border-2 border-gray-100 shrink-0">
-                       {f.image_url ? <img src={f.image_url} className="w-full h-full object-cover" /> : <ImageIcon size={20} className="m-auto mt-5 text-gray-200" />}
+                 <div key={f.id} className="bg-white p-4 sm:p-6 rounded-3xl border border-gray-100 flex items-center gap-3 sm:gap-6 group hover:border-gold transition-all min-w-0">
+                    <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-gray-50 border-2 border-gray-100 shrink-0">
+                       {f.image_url ? <img src={f.image_url} className="w-full h-full object-cover" /> : <ImageIcon size={18} className="m-auto mt-3.5 sm:mt-5 text-gray-200" />}
                        <label className="absolute inset-0 bg-navy/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer text-white">
                           <input type="file" className="hidden" onChange={e => handleImageUpload(e, f.id)} />
-                          {uploading === f.id ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                          {uploading === f.id ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                        </label>
                     </div>
-                    <div className="flex-1 grid grid-cols-1 gap-1">
-                       <input defaultValue={f.name} onBlur={e => handleUpdate('users', f.id, { name: e.target.value })} className="bg-transparent border-none p-0 text-sm font-bold text-navy focus:ring-0" />
-                       <div className="flex gap-2">
-                         <input defaultValue={f.subject} onBlur={e => handleUpdate('users', f.id, { subject: e.target.value })} className="bg-transparent border-none p-0 text-[10px] font-bold text-gray-400 uppercase tracking-widest focus:ring-0" />
-                         <span className="text-gray-300">•</span>
-                         <input defaultValue={f.experience} onBlur={e => handleUpdate('users', f.id, { experience: e.target.value })} className="bg-transparent border-none p-0 text-[10px] font-bold text-gold uppercase tracking-widest focus:ring-0" />
+                    <div className="flex-1 min-w-0 grid grid-cols-1 gap-0.5 sm:gap-1">
+                       <input defaultValue={f.name} onBlur={e => handleUpdate('users', f.id, { name: e.target.value })} className="w-full min-w-0 bg-transparent border-none p-0 text-xs sm:text-sm font-bold text-navy focus:ring-0" />
+                       <div className="flex gap-1.5 sm:gap-2 min-w-0 w-full">
+                         <input defaultValue={f.subject} onBlur={e => handleUpdate('users', f.id, { subject: e.target.value })} className="w-[45%] min-w-0 bg-transparent border-none p-0 text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest focus:ring-0" />
+                         <span className="text-gray-300 shrink-0">•</span>
+                         <input defaultValue={f.experience} onBlur={e => handleUpdate('users', f.id, { experience: e.target.value })} className="w-[45%] min-w-0 bg-transparent border-none p-0 text-[9px] sm:text-[10px] font-bold text-gold uppercase tracking-widest focus:ring-0" />
                        </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1 sm:gap-2 shrink-0">
                        <button onClick={() => { setEditingFaculty(f); setShowEditModal(true) }} className="p-2 bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-colors"><Edit2 size={16} /></button>
                        <button onClick={() => handleUpdate('users', f.id, { is_featured: !f.is_featured })} className={`p-2 rounded-lg transition-colors ${f.is_featured ? 'bg-gold text-navy' : 'bg-gray-50 text-gray-300'}`}><Star size={16} fill={f.is_featured ? 'currentColor' : 'none'} /></button>
                        <button onClick={() => handleDelete('users', f.id)} className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={16} /></button>
