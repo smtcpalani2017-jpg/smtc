@@ -15,6 +15,15 @@ const ICON_OPTIONS = {
   'Trophy': <Trophy size={20} />
 }
 
+interface NewResultState {
+  student_name: string
+  exam_name: string
+  score: string
+  achievement: string
+  is_featured: boolean
+  image_url: string
+}
+
 export default function WebsiteManagement() {
   const supabase = createClient()
   const [faculty, setFaculty] = useState<any[]>([])
@@ -32,7 +41,7 @@ export default function WebsiteManagement() {
   
   const [newFaculty, setNewFaculty] = useState({ name: '', email: '', subject: '', experience: '', image_url: '', is_featured: true, password: 'staff123' })
   const [newCourse, setNewCourse] = useState({ title: '', description: '', icon_name: 'BookOpen' })
-  const [newResult, setNewResult] = useState({ student_name: '', exam_name: '', score: '', achievement: '', is_featured: true })
+  const [newResult, setNewResult] = useState<NewResultState>({ student_name: '', exam_name: '', score: '', achievement: '', is_featured: true, image_url: '' })
 
   const loadData = async () => {
     setLoading(true)
