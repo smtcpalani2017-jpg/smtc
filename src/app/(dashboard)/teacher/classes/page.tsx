@@ -151,11 +151,13 @@ export default function MyClasses() {
 
       if (error) {
         alert("Error deleting test: " + error.message)
+        return false
       } else {
         setSuccessMsg(`Test "${testName}" deleted successfully!`)
         // Reload students and grouped test results
         await loadStudents(selectedClass)
         setTimeout(() => setSuccessMsg(''), 3000)
+        return true
       }
     } catch (err: any) {
       alert("Error: " + err.message)
