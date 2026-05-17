@@ -6,7 +6,7 @@ import Sidebar from '@/components/dashboard/Sidebar'
 import { 
   ArrowLeft, CheckCircle2, XCircle, Loader2, 
   GraduationCap, Check, Banknote, User, Clock,
-  Trophy, BookOpen, ChevronRight, BarChart3, Search, Save
+  Trophy, BookOpen, ChevronRight, BarChart3, Search, Save, Trash
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -126,6 +126,40 @@ export default function MyClasses() {
       payment_for_month: currentMonthStr, collected_by: 'Staff'
     })
     if (!error) setPaidMonths(prev => ({ ...prev, [student.id]: true }))
+    setActionLoading(null)
+  }
+
+  const handleDeleteTest = async (testName: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!selectedClass) return
+    if (!confirm(`Are you sure you want to delete "${testName}"? This will delete all student scores for this test permanently across the entire portal.`)) return
+    
+    setActionLoading(testName + '_delete')
+    try {
+      const studentIds = students.map(s => s.id)
+      if (studentIds.length === 0) {
+        alert("Cannot delete test: no students found in this class.")
+        setActionLoading(null)
+        return
+      }
+
+      const { error } = await supabase
+        .from('marks')
+        .delete()
+        .eq('test_name', testName)
+        .in('student_id', studentIds)
+
+      if (error) {
+        alert("Error deleting test: " + error.message)
+      } else {
+        setSuccessMsg(`Test "${testName}" deleted successfully!`)
+        // Reload students and grouped test results
+        await loadStudents(selectedClass)
+        setTimeout(() => setSuccessMsg(''), 3000)
+      }
+    } catch (err: any) {
+      alert("Error: " + err.message)
+    }
     setActionLoading(null)
   }
 
