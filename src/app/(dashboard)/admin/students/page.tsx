@@ -55,7 +55,7 @@ export default function AdminStudentsPage() {
   return (
     <div className="flex min-h-screen bg-[#F8F9FA]">
       <Sidebar role="admin" userName="Admin" userEmail="smtcpalani2017@gmail.com" />
-      <main className="flex-1 ml-0 md:ml-64 min-h-screen transition-all duration-300">
+      <main className="flex-1 min-w-0 ml-0 md:ml-64 min-h-screen transition-all duration-300">
         <header className="bg-white border-b border-gray-200 min-h-16 py-3 flex items-center justify-between px-4 sm:px-8 pl-16 sm:pl-8 sticky top-0 z-30">
           <div>
             <h1 className="font-serif font-bold text-[#001F3F] text-lg sm:text-xl">Student Management</h1>

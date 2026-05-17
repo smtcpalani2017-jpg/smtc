@@ -311,8 +311,13 @@ body {
     overflow-x: hidden !important;
   }
 
+  main {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
   /* Tables must scroll horizontally on mobile */
-  main .overflow-hidden {
+  main .overflow-x-auto, main .overflow-hidden {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
   }

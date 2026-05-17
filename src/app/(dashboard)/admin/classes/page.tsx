@@ -112,7 +112,7 @@ export default function AdminClassManagement() {
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
       <Sidebar role="admin" />
-      <main className="flex-1 ml-0 md:ml-64 min-h-screen p-4 sm:p-10 transition-all duration-300">
+      <main className="flex-1 min-w-0 ml-0 md:ml-64 min-h-screen p-4 sm:p-10 transition-all duration-300">
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-12 pl-12 sm:pl-0">
           <div className="flex items-center gap-4">
              {(viewingClass || selectedTest) && (
