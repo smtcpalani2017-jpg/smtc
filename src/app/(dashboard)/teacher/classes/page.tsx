@@ -286,29 +286,92 @@ export default function MyClasses() {
                   </tbody>
                 </table>
               </motion.div>
-            ) : (
-                <motion.div key="test-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {testResults.length === 0 ? (
-                        <div className="col-span-full py-32 text-center bg-white rounded-[40px] border border-slate-100 shadow-sm">
-                            <BookOpen size={48} className="mx-auto text-slate-100 mb-6" />
-                            <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">No tests recorded.</p>
-                        </div>
-                    ) : testResults.map((test: any, i: number) => (
-                        <button key={i} onClick={() => setSelectedTest(test)} className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-900 transition-all text-left group">
-                            <div className="flex justify-between items-start mb-6">
-                                <div className="bg-slate-50 text-slate-900 p-3 rounded-xl group-hover:bg-slate-900 group-hover:text-white transition-colors"><Trophy size={20} /></div>
-                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{test.date}</div>
-                            </div>
-                            <h3 className="text-lg font-black text-slate-900 mb-1">{test.name}</h3>
-                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">{test.subject}</div>
-                            <div className="flex items-center justify-between mt-6 pt-6 border-t border-slate-50">
-                                <span className="text-[10px] font-black text-slate-900 uppercase">Out of {test.outOf}</span>
-                                <ChevronRight size={16} className="text-slate-200 group-hover:text-slate-900 group-hover:translate-x-1 transition-all" />
-                            </div>
-                        </button>
-                    ))}
-                </motion.div>
-            )}
+             ) : !selectedTest ? (
+                 <motion.div key="test-list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                     {testResults.length === 0 ? (
+                         <div className="col-span-full py-32 text-center bg-white rounded-[40px] border border-slate-100 shadow-sm">
+                             <BookOpen size={48} className="mx-auto text-slate-100 mb-6" />
+                             <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">No tests recorded.</p>
+                         </div>
+                     ) : testResults.map((test: any, i: number) => (
+                         <div key={i} onClick={() => setSelectedTest(test)} className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-900 transition-all text-left group cursor-pointer relative">
+                             <div className="flex justify-between items-start mb-6">
+                                 <div className="bg-slate-50 text-slate-900 p-3 rounded-xl group-hover:bg-slate-900 group-hover:text-white transition-colors"><Trophy size={20} /></div>
+                                 <div className="flex items-center gap-3">
+                                     <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{test.date}</div>
+                                     <button 
+                                         onClick={(e) => handleDeleteTest(test.name, e)} 
+                                         disabled={actionLoading === test.name + '_delete'}
+                                         className="p-2 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-colors shrink-0"
+                                     >
+                                         {actionLoading === test.name + '_delete' ? <Loader2 size={14} className="animate-spin" /> : <Trash size={14} />}
+                                     </button>
+                                 </div>
+                             </div>
+                             <h3 className="text-lg font-black text-slate-900 mb-1">{test.name}</h3>
+                             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">{test.subject}</div>
+                             <div className="flex items-center justify-between mt-6 pt-6 border-t border-slate-50">
+                                 <span className="text-[10px] font-black text-slate-900 uppercase">Out of {test.outOf}</span>
+                                 <ChevronRight size={16} className="text-slate-200 group-hover:text-slate-900 group-hover:translate-x-1 transition-all" />
+                             </div>
+                         </div>
+                     ))}
+                 </motion.div>
+             ) : (
+                 <motion.div key="results-detail" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[32px] sm:rounded-[48px] border border-slate-100 shadow-xl overflow-hidden min-w-0">
+                     <div className="p-6 sm:p-10 border-b border-slate-50 bg-slate-50/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                         <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+                             <div className="bg-slate-900 text-white p-3.5 sm:p-4 rounded-2xl shadow-lg shadow-slate-900/20 shrink-0"><BarChart3 size={24} /></div>
+                             <div className="min-w-0"><h3 className="text-lg sm:text-xl font-black text-slate-900 uppercase tracking-tight truncate">{selectedTest.name}</h3><p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{selectedTest.subject} • {selectedTest.date}</p></div>
+                         </div>
+                         <div className="flex flex-wrap items-center gap-3 shrink-0">
+                             <div className="bg-slate-100 border border-slate-200/50 text-slate-900 px-4 py-2 rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Out of {selectedTest.outOf}</div>
+                             <button 
+                                 onClick={async (e) => {
+                                     const deleted = await handleDeleteTest(selectedTest.name, e);
+                                     if (deleted) setSelectedTest(null);
+                                 }} 
+                                 disabled={actionLoading === selectedTest.name + '_delete'}
+                                 className="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-rose-500/20 transition-all"
+                             >
+                                 {actionLoading === selectedTest.name + '_delete' ? <Loader2 size={12} className="animate-spin" /> : <Trash size={12} />} Delete Test
+                             </button>
+                         </div>
+                     </div>
+                     <div className="overflow-x-auto">
+                         <table className="w-full text-left min-w-[500px]">
+                             <thead>
+                                 <tr className="bg-slate-50/50">
+                                     <th className="px-6 sm:px-10 py-5 text-[9px] font-black text-slate-400 uppercase tracking-widest">Rank & Student</th>
+                                     <th className="px-6 sm:px-10 py-5 text-center text-[9px] font-black text-slate-400 uppercase tracking-widest">Mark Progress</th>
+                                     <th className="px-6 sm:px-10 py-5 text-right text-[9px] font-black text-slate-400 uppercase tracking-widest">Final Mark</th>
+                                 </tr>
+                             </thead>
+                             <tbody className="divide-y divide-slate-50">
+                                 {selectedTest.scores.sort((a:any, b:any) => b.mark - a.mark).map((score: any, idx: number) => {
+                                     const pct = (score.mark / selectedTest.outOf) * 100
+                                     return (
+                                         <tr key={idx} className="hover:bg-slate-50/30 transition-all">
+                                             <td className="px-6 sm:px-10 py-4 flex items-center gap-4">
+                                                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black ${idx < 3 ? 'bg-amber-100 text-amber-600' : 'bg-slate-50 text-slate-400'}`}>{idx + 1}</div>
+                                                 <div><div className="text-sm font-bold text-slate-900">{score.student}</div><div className="text-[9px] font-bold text-slate-400 uppercase">{score.regNo}</div></div>
+                                             </td>
+                                             <td className="px-6 sm:px-10 py-4">
+                                                 <div className="h-1.5 w-full max-w-[200px] mx-auto bg-slate-100 rounded-full overflow-hidden">
+                                                     <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} className={`h-full rounded-full ${pct >= 80 ? 'bg-emerald-500' : pct >= 40 ? 'bg-amber-500' : 'bg-rose-500'}`} />
+                                                 </div>
+                                             </td>
+                                             <td className="px-6 sm:px-10 py-4 text-right">
+                                                 <span className={`text-base font-black ${pct >= 80 ? 'text-emerald-600' : pct >= 40 ? 'text-slate-900' : 'text-rose-600'}`}>{score.mark} <span className="text-[10px] font-normal text-slate-300">/ {selectedTest.outOf}</span></span>
+                                             </td>
+                                         </tr>
+                                     )
+                                 })}
+                             </tbody>
+                         </table>
+                     </div>
+                 </motion.div>
+             )}
           </AnimatePresence>
         </div>
       </main>
