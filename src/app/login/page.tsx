@@ -190,12 +190,12 @@ export default function LoginPage() {
           </AnimatePresence>
         </div>
 
-        <div className="mt-8 sm:mt-10 text-center space-y-4">
-          <Link href="/" className="block text-[9px] sm:text-[10px] font-black text-gray-400 uppercase hover:text-gold transition-colors tracking-[0.2em]">
-            Back to Institutional Website
+        <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full px-2 sm:px-0">
+          <Link href="/" className="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-900 border border-slate-200 hover:border-slate-900 text-slate-600 hover:text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm hover:shadow-xl hover:-translate-y-0.5 cursor-pointer w-full sm:w-auto text-center shrink-0">
+            <ArrowLeft size={14} /> Back to Website
           </Link>
-          <Link href="/setup-admin" className="block text-[9px] sm:text-[10px] font-black text-gold/20 uppercase hover:text-gold transition-colors">
-            Initial Admin Setup (One-time)
+          <Link href="/setup-admin" className="inline-flex items-center justify-center gap-2 bg-amber-50/50 hover:bg-amber-500 border border-amber-200/40 hover:border-amber-500 text-amber-600 hover:text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm hover:shadow-xl hover:-translate-y-0.5 cursor-pointer w-full sm:w-auto text-center shrink-0">
+            <ShieldCheck size={14} /> Initial Admin Setup
           </Link>
         </div>
       </div>
