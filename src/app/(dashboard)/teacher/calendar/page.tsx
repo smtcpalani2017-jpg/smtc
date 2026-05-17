@@ -70,29 +70,29 @@ export default function TeacherCalendar() {
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans">
       <Sidebar role="teacher" />
-      <main className="flex-1 ml-64 min-h-screen p-10 flex gap-10">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen p-4 sm:p-10 flex flex-col xl:flex-row gap-6 sm:gap-10 transition-all duration-300">
         
         {/* Main Calendar View */}
         <div className="flex-1 space-y-8">
-           <header className="flex items-center justify-between">
+           <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pl-12 sm:pl-0">
               <div>
-                 <h1 className="text-3xl font-black text-slate-900 tracking-tight">Academic Calendar</h1>
+                 <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Academic Calendar</h1>
                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Holidays & Personal Notes</p>
               </div>
-              <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
+              <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm w-fit">
                  <button onClick={handlePrevMonth} className="p-2 hover:bg-slate-50 rounded-xl transition-all text-slate-400"><ChevronLeft size={18} /></button>
                  <span className="text-sm font-black text-slate-900 min-w-[120px] text-center uppercase tracking-widest">{monthName} {year}</span>
                  <button onClick={handleNextMonth} className="p-2 hover:bg-slate-50 rounded-xl transition-all text-slate-400"><ChevronRight size={18} /></button>
               </div>
            </header>
 
-           <div className="bg-white rounded-[48px] p-10 border border-slate-100 shadow-xl">
-              <div className="grid grid-cols-7">
+           <div className="bg-white rounded-[32px] sm:rounded-[48px] p-4 sm:p-10 border border-slate-100 shadow-xl overflow-x-auto">
+              <div className="grid grid-cols-7 min-w-[600px]">
                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
                     <div key={d} className="text-center text-[10px] font-black text-slate-300 uppercase tracking-widest mb-8">{d}</div>
                  ))}
                  
-                 {padding.map((_, i) => <div key={`p-${i}`} className="h-28" />)}
+                 {padding.map((_, i) => <div key={`p-${i}`} className="h-20 sm:h-28" />)}
                  {days.map(day => {
                     const dateStr = getDateStr(day)
                     const holiday = HOLIDAYS.find(h => h.date === dateStr)
@@ -103,15 +103,15 @@ export default function TeacherCalendar() {
                        <button 
                           key={day} 
                           onClick={() => setSelectedDate(new Date(year, month, day))}
-                          className={`h-28 relative border-t border-slate-50 transition-all p-4 text-left group hover:bg-slate-50/50 ${isSelected ? 'bg-slate-50' : ''}`}
+                          className={`h-20 sm:h-28 relative border-t border-slate-50 transition-all p-3 sm:p-4 text-left group hover:bg-slate-50/50 ${isSelected ? 'bg-slate-50' : ''}`}
                        >
-                          <span className={`text-sm font-black ${isToday(day) ? 'bg-slate-900 text-white w-7 h-7 rounded-full flex items-center justify-center' : isSelected ? 'text-slate-900 underline decoration-slate-900 underline-offset-4' : 'text-slate-400'}`}>
+                          <span className={`text-xs sm:text-sm font-black ${isToday(day) ? 'bg-slate-900 text-white w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center' : isSelected ? 'text-slate-900 underline decoration-slate-900 underline-offset-4' : 'text-slate-400'}`}>
                              {day}
                           </span>
                           
-                          <div className="mt-2 flex flex-col gap-1">
+                          <div className="mt-1 sm:mt-2 flex flex-col gap-1">
                              {holiday && (
-                                <div className="text-[7px] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 truncate">
+                                <div className="text-[6px] sm:text-[7px] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-600 truncate">
                                    {holiday.title}
                                 </div>
                              )}
@@ -127,7 +127,7 @@ export default function TeacherCalendar() {
         </div>
 
         {/* Detail & Note Sidebar */}
-        <div className="w-[400px] space-y-8">
+        <div className="w-full xl:w-[400px] space-y-8">
            <AnimatePresence mode="wait">
               {selectedDate && (
                  <motion.div 

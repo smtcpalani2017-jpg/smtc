@@ -75,16 +75,16 @@ export default function AdminAttendanceDashboard() {
         input[type="date"]::-webkit-clear-button { display: none; -webkit-appearance: none; }
       `}</style>
 
-      <main className="flex-1 ml-64 min-h-screen p-10 space-y-8">
-        <header className="flex items-center justify-between">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen p-4 sm:p-10 space-y-6 sm:space-y-8 transition-all duration-300">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pl-12 sm:pl-0">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Attendance Center</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Attendance Center</h1>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Institutional Presence Report</p>
           </div>
           
           <div 
             onClick={() => dateInputRef.current?.showPicker()}
-            className="bg-white px-5 py-2.5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:border-slate-400 transition-all relative"
+            className="bg-white px-5 py-2.5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:border-slate-400 transition-all relative w-fit"
           >
              <CalendarIcon size={14} className="text-slate-500" />
              <span className="text-[11px] font-black text-slate-700 uppercase tracking-widest">

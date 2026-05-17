@@ -82,15 +82,15 @@ export default function AdminStaffPage() {
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans">
       <Sidebar role="admin" />
-      <main className="flex-1 ml-64 min-h-screen p-10">
-        <header className="flex items-center justify-between mb-10">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen p-4 sm:p-10 transition-all duration-300">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-10 pl-12 sm:pl-0">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Staff Management</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Staff Management</h1>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Institutional Access Control</p>
           </div>
           <button
             onClick={openAdd}
-            className="flex items-center gap-3 bg-slate-900 text-white px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10"
+            className="flex items-center gap-3 bg-slate-900 text-white px-6 sm:px-8 py-3 rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 w-fit"
           >
             <UserPlus size={16} />
             <span>Add Staff</span>
@@ -98,7 +98,8 @@ export default function AdminStaffPage() {
         </header>
 
         <div className="bg-white rounded-[48px] border border-slate-100 shadow-xl overflow-hidden">
-          <table className="w-full text-left">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px] text-left">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-100">
                 <th className="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">#</th>
@@ -148,6 +149,7 @@ export default function AdminStaffPage() {
             </tbody>
           </table>
         </div>
+      </div>
       </main>
 
       {/* Staff Modal (Add/Edit) */}

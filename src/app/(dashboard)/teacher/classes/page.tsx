@@ -132,8 +132,8 @@ export default function MyClasses() {
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans">
       <Sidebar role="teacher" />
-      <main className="flex-1 ml-64 min-h-screen">
-        <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 h-20 flex items-center justify-between px-10 sticky top-0 z-30">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen transition-all duration-300">
+        <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 min-h-20 py-3 flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-10 pl-16 sm:pl-10 gap-3 sticky top-0 z-30">
           <div className="flex items-center gap-4">
             {(selectedClass || selectedTest) && (
               <button onClick={() => { if (selectedTest) setSelectedTest(null); else setSelectedClass(null); }} className="p-2 hover:bg-slate-50 rounded-2xl transition-all">
@@ -146,22 +146,22 @@ export default function MyClasses() {
             </div>
           </div>
           {selectedClass && !selectedTest && (
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-3">
                   {activeTab === 'mgmt' && (
                       <button onClick={handleSaveAttendance} disabled={savingAttendance} className="bg-emerald-500 text-white px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all flex items-center gap-2">
                          {savingAttendance ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                          {savingAttendance ? 'Saving...' : 'Save Attendance'}
                       </button>
                   )}
-                  <div className="bg-slate-100 p-1 rounded-2xl flex gap-1 shadow-inner border border-slate-200/50">
-                      <button onClick={() => setActiveTab('mgmt')} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'mgmt' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Management</button>
-                      <button onClick={() => setActiveTab('results')} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'results' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Test Results</button>
+                  <div className="bg-slate-100 p-1 rounded-2xl flex gap-1 shadow-inner border border-slate-200/50 w-fit">
+                      <button onClick={() => setActiveTab('mgmt')} className={`px-4 sm:px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'mgmt' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Management</button>
+                      <button onClick={() => setActiveTab('results')} className={`px-4 sm:px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'results' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Test Results</button>
                   </div>
               </div>
           )}
         </header>
 
-        <div className="p-10">
+        <div className="p-4 sm:p-10">
           {successMsg && (
              <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6 bg-emerald-50 border border-emerald-100 text-emerald-600 p-4 rounded-2xl text-xs font-bold flex items-center gap-3"><CheckCircle2 size={18} /> {successMsg}</motion.div>
           )}

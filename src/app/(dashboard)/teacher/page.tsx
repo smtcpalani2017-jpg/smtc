@@ -57,10 +57,10 @@ export default function TeacherDashboard() {
   return (
     <div className="flex min-h-screen bg-[#F8F9FA]">
       <Sidebar role="teacher" userName="Staff" userEmail="staff@smtc.edu" />
-      <main className="flex-1 ml-64 min-h-screen">
-        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-8 sticky top-0 z-30">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen transition-all duration-300">
+        <header className="bg-white border-b border-gray-200 min-h-16 py-3 flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-8 pl-16 sm:pl-8 gap-3 sticky top-0 z-30">
           <div>
-            <h1 className="font-serif font-bold text-[#001F3F] text-xl">Staff Dashboard</h1>
+            <h1 className="font-serif font-bold text-[#001F3F] text-lg sm:text-xl">Staff Dashboard</h1>
             <p className="text-xs text-gray-400">Welcome back! Here&apos;s your overview.</p>
           </div>
           <div className="flex items-center space-x-3">
@@ -72,7 +72,7 @@ export default function TeacherDashboard() {
           </div>
         </header>
 
-        <div className="p-8 space-y-8">
+        <div className="p-4 sm:p-8 space-y-8">
           {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
             <StatsCard title="My Students" value={stats.totalStudents} icon={Users} color="navy" />

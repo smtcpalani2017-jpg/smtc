@@ -92,14 +92,14 @@ export default function TeacherAttendanceReport() {
         }
       `}</style>
 
-      <main className="flex-1 ml-64 min-h-screen relative p-10">
-        <header className="flex items-center justify-between mb-12">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen relative p-4 sm:p-10 transition-all duration-300">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-12 pl-12 sm:pl-0">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Attendance Records</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Attendance Records</h1>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Institutional Assignment Sync</p>
           </div>
           
-          <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200">
+          <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-fit">
              <div 
                onClick={() => dateInputRef.current?.showPicker()}
                className="px-4 py-2 flex items-center gap-3 border-r border-slate-100 hover:bg-slate-50 rounded-xl transition-all cursor-pointer relative"
@@ -134,7 +134,7 @@ export default function TeacherAttendanceReport() {
         </header>
 
         <div className="space-y-10">
-          <div className="flex gap-6">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
              <StatBox icon={<Activity size={20} />} label="Total Students" value={records.length} isActive={statusFilter === 'all'} onClick={() => setStatusFilter('all')} />
              <StatBox icon={<CheckCircle2 size={20} />} label="Present Today" value={presentCount} isActive={statusFilter === 'present'} onClick={() => setStatusFilter('present')} activeColor="bg-emerald-500" />
              <StatBox icon={<XCircle size={20} />} label="Absent Today" value={absentCount} isActive={statusFilter === 'absent'} onClick={() => setStatusFilter('absent')} activeColor="bg-rose-500" />

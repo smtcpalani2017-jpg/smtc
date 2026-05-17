@@ -55,15 +55,15 @@ export default function AdminStudentsPage() {
   return (
     <div className="flex min-h-screen bg-[#F8F9FA]">
       <Sidebar role="admin" userName="Admin" userEmail="smtcpalani2017@gmail.com" />
-      <main className="flex-1 ml-64 min-h-screen">
-        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-8 sticky top-0 z-30">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen transition-all duration-300">
+        <header className="bg-white border-b border-gray-200 min-h-16 py-3 flex items-center justify-between px-4 sm:px-8 pl-16 sm:pl-8 sticky top-0 z-30">
           <div>
-            <h1 className="font-serif font-bold text-[#001F3F] text-xl">Student Management</h1>
+            <h1 className="font-serif font-bold text-[#001F3F] text-lg sm:text-xl">Student Management</h1>
             <p className="text-xs text-gray-400">{filtered.length} students found</p>
           </div>
         </header>
 
-        <div className="p-8 space-y-6">
+        <div className="p-4 sm:p-8 space-y-6">
           {/* Filters */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <div className="flex flex-wrap gap-4 items-center">
@@ -96,7 +96,7 @@ export default function AdminStudentsPage() {
           </div>
 
           {/* Summary Stats */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             {[
               { label: 'Total', val: filtered.length, color: 'bg-[#001F3F] text-white' },
               { label: 'Boys', val: filtered.filter(s => s.gender === 'Male').length, color: 'bg-blue-500 text-white' },
@@ -104,23 +104,24 @@ export default function AdminStudentsPage() {
               { label: 'Classes', val: new Set(filtered.map(s => s.class)).size, color: 'bg-[#D4AF37] text-[#001229]' },
             ].map(stat => (
               <div key={stat.label} className={`${stat.color} rounded-2xl p-4 text-center`}>
-                <div className="text-2xl font-black">{stat.val}</div>
-                <div className="text-xs font-bold uppercase tracking-wider opacity-80 mt-0.5">{stat.label}</div>
+                <div className="text-xl sm:text-2xl font-black">{stat.val}</div>
+                <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider opacity-80 mt-0.5">{stat.label}</div>
               </div>
             ))}
           </div>
 
           {/* Table */}
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50">
-                  {['#', 'Name', 'Reg No.', 'Class', 'Gender', 'Parent', 'Phone', 'Joined', 'Action'].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[800px]">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50">
+                    {['#', 'Name', 'Reg No.', 'Class', 'Gender', 'Parent', 'Phone', 'Joined', 'Action'].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
                 {loading ? (
                   <tr><td colSpan={9} className="text-center py-12 text-gray-400">Loading students...</td></tr>
                 ) : filtered.length === 0 ? (
@@ -160,6 +161,7 @@ export default function AdminStudentsPage() {
             </table>
           </div>
         </div>
+      </div>
       </main>
 
       {/* Student Detail Modal */}

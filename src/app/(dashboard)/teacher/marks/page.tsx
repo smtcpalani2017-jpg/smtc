@@ -105,13 +105,13 @@ export default function UploadMarksPage() {
         .no-spinner[type=number] { -moz-appearance: textfield; }
       `}</style>
 
-      <main className="flex-1 ml-64 min-h-screen p-10">
-        <header className="flex items-center justify-between mb-10">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen p-4 sm:p-10 transition-all duration-300">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-10 pl-12 sm:pl-0">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Upload Test Marks</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Upload Test Marks</h1>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Institutional Performance Sync</p>
           </div>
-          <button onClick={handleSave} disabled={saving || students.length === 0} className="bg-slate-900 text-white px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center gap-3 hover:bg-slate-800 transition-all shadow-xl disabled:opacity-50">
+          <button onClick={handleSave} disabled={saving || students.length === 0} className="bg-slate-900 text-white px-6 sm:px-8 py-3 rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest flex items-center gap-3 hover:bg-slate-800 transition-all shadow-xl disabled:opacity-50 w-fit">
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             {saving ? 'Uploading...' : 'Save Marks'}
           </button>
@@ -123,7 +123,7 @@ export default function UploadMarksPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-4 gap-6 mb-8 bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 bg-white p-6 sm:p-8 rounded-[40px] border border-slate-100 shadow-sm">
            <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest flex items-center gap-2"><Filter size={12}/> Class</label>
               <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)} className={inp}>

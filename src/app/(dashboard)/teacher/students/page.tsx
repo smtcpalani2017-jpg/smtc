@@ -107,31 +107,31 @@ export default function StudentManagement() {
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans">
       <Sidebar role="teacher" />
-      <main className="flex-1 ml-64 min-h-screen p-10">
-        <header className="flex items-center justify-between mb-12">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen p-4 sm:p-10 transition-all duration-300">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-12 pl-12 sm:pl-0">
           <div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Students</h1>
+            <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">Students</h1>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">Institutional Enrollment Registry</p>
           </div>
-          <button onClick={openAddModal} className="bg-slate-900 text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 hover:bg-slate-800 transition-all shadow-2xl active:scale-95">
+          <button onClick={openAddModal} className="bg-slate-900 text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 hover:bg-slate-800 transition-all shadow-2xl active:scale-95 w-fit">
             <Plus size={16} strokeWidth={3} /> Add Student
           </button>
         </header>
 
-        <div className="bg-white rounded-[48px] border border-slate-100 shadow-xl overflow-hidden">
-          <div className="p-8 border-b border-slate-50 flex items-center gap-4">
+        <div className="bg-white rounded-[32px] sm:rounded-[48px] border border-slate-100 shadow-xl overflow-hidden">
+          <div className="p-4 sm:p-8 border-b border-slate-50 flex items-center gap-4">
              <div className="relative flex-1">
                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
                 <input 
                    type="text" placeholder="Search by name, class or registration number..." 
                    value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                   className="w-full pl-16 pr-8 py-5 bg-slate-50/50 border-none rounded-[24px] text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-slate-900 transition-all"
+                   className="w-full pl-16 pr-8 py-4 sm:py-5 bg-slate-50/50 border-none rounded-[24px] text-sm font-bold text-slate-900 placeholder:text-slate-300 focus:ring-2 focus:ring-slate-900 transition-all"
                 />
              </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-left min-w-[800px]">
               <thead>
                 <tr className="bg-slate-50/30">
                   <th className="px-10 py-7 text-[10px] font-black text-slate-400 uppercase tracking-widest">Student Identity</th>
@@ -221,22 +221,22 @@ export default function StudentManagement() {
 
             {/* Form Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowModal(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" />
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white w-full max-w-3xl rounded-[40px] shadow-2xl relative z-[210] overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="px-10 py-8 border-b border-slate-50 flex items-center justify-between bg-white sticky top-0 z-20">
-                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">{editingStudent ? 'Edit Profile' : 'New Student'}</h2>
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white w-full max-w-3xl rounded-[32px] sm:rounded-[40px] shadow-2xl relative z-[210] overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="px-6 sm:px-10 py-6 sm:py-8 border-b border-slate-50 flex items-center justify-between bg-white sticky top-0 z-20">
+                            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{editingStudent ? 'Edit Profile' : 'New Student'}</h2>
                             <button onClick={() => setShowModal(false)} className="w-10 h-10 flex items-center justify-center bg-slate-50 hover:bg-slate-100 rounded-xl transition-all text-slate-400"><X size={18} /></button>
                         </div>
-                        <div className="p-10 overflow-y-auto">
-                            <form onSubmit={handleSubmit} className="space-y-8">
-                                <div className="grid grid-cols-2 gap-8">
-                                    <div className="space-y-6">
+                        <div className="p-6 sm:p-10 overflow-y-auto">
+                            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
+                                    <div className="space-y-4 sm:space-y-6">
                                         <div><label className={labelClass}>Student Name</label><input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className={inputClass} /></div>
                                         <div><label className={labelClass}>Parent Name</label><input required type="text" value={formData.parent_name} onChange={e => setFormData({...formData, parent_name: e.target.value})} className={inputClass} /></div>
                                         <div><label className={labelClass}>Phone Number</label><input required type="text" value={formData.parent_phone} onChange={e => setFormData({...formData, parent_phone: e.target.value})} className={inputClass} /></div>
                                     </div>
-                                    <div className="space-y-6">
+                                    <div className="space-y-4 sm:space-y-6">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div><label className={labelClass}>Class</label><select required value={formData.class} onChange={e => setFormData({...formData, class: e.target.value})} className={inputClass}><option value="">Select</option>{classes.map(c => <option key={c.class_name} value={c.class_name}>{c.class_name}</option>)}</select></div>
                                             <div><label className={labelClass}>Gender</label><select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} className={inputClass}><option value="Male">Male</option><option value="Female">Female</option></select></div>
@@ -253,7 +253,7 @@ export default function StudentManagement() {
                                     </div>
                                 </div>
                                 <div><label className={labelClass}>Address</label><textarea rows={2} value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className={inputClass + " resize-none h-24 py-4"} /></div>
-                                <div className="pt-4"><button disabled={saving} className="w-full bg-slate-900 text-white py-5 rounded-[24px] text-xs font-black uppercase tracking-widest shadow-xl hover:bg-slate-800 disabled:opacity-60 transition-all flex items-center justify-center gap-3">{saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}{saving ? 'Processing...' : 'Save Student'}</button></div>
+                                <div className="pt-4"><button disabled={saving} className="w-full bg-slate-900 text-white py-4 sm:py-5 rounded-[24px] text-xs font-black uppercase tracking-widest shadow-xl hover:bg-slate-800 disabled:opacity-60 transition-all flex items-center justify-center gap-3">{saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}{saving ? 'Processing...' : 'Save Student'}</button></div>
                             </form>
                         </div>
                     </motion.div>

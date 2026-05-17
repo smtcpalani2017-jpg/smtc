@@ -112,8 +112,8 @@ export default function AdminClassManagement() {
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
       <Sidebar role="admin" />
-      <main className="flex-1 ml-64 min-h-screen p-10">
-        <header className="flex items-center justify-between mb-12">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen p-4 sm:p-10 transition-all duration-300">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-12 pl-12 sm:pl-0">
           <div className="flex items-center gap-4">
              {(viewingClass || selectedTest) && (
                <button 
@@ -127,7 +127,7 @@ export default function AdminClassManagement() {
                </button>
              )}
              <div>
-               <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                   {selectedTest ? selectedTest.name : (viewingClass ? viewingClass.class_name : 'Class Management')}
                </h1>
                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
@@ -139,16 +139,16 @@ export default function AdminClassManagement() {
           {!viewingClass && (
             <button 
                 onClick={() => { setEditingClass(null); setShowModal(true); }}
-                className="bg-slate-900 text-white px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest flex items-center gap-3 hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10"
+                className="bg-slate-900 text-white px-6 sm:px-8 py-3 rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest flex items-center gap-3 hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 w-fit"
             >
                 <Plus size={16} /> Create Class
             </button>
           )}
 
           {viewingClass && !selectedTest && (
-            <div className="bg-slate-100 p-1 rounded-2xl flex gap-1 shadow-inner border border-slate-200/50">
-                <button onClick={() => setActiveTab('students')} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'students' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Students</button>
-                <button onClick={() => setActiveTab('results')} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'results' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Test Hub</button>
+            <div className="bg-slate-100 p-1 rounded-2xl flex gap-1 shadow-inner border border-slate-200/50 w-fit">
+                <button onClick={() => setActiveTab('students')} className={`px-4 sm:px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'students' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Students</button>
+                <button onClick={() => setActiveTab('results')} className={`px-4 sm:px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'results' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>Test Hub</button>
             </div>
           )}
         </header>

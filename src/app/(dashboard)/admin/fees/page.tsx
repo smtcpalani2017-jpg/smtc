@@ -107,8 +107,8 @@ export default function AdminFeesPage() {
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans">
       <Sidebar role="admin" />
-      <main className="flex-1 ml-64 min-h-screen p-10 space-y-10">
-        <header className="flex items-center justify-between">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen p-4 sm:p-10 space-y-6 sm:space-y-10 transition-all duration-300">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pl-12 sm:pl-0">
           <div className="flex items-center gap-4">
             {selectedClass && (
               <button onClick={() => setSelectedClass(null)} className="p-2 hover:bg-white rounded-2xl transition-all shadow-sm border border-slate-100">
@@ -116,29 +116,29 @@ export default function AdminFeesPage() {
               </button>
             )}
             <div>
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                 {selectedClass ? `${selectedClass} Fee Status` : 'Fees Analytics'}
               </h1>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Institutional Revenue Tracking</p>
             </div>
           </div>
-          <button className="bg-slate-900 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-slate-900/10">
+          <button className="bg-slate-900 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-slate-900/10 w-fit">
             <Download size={16} /> Export Financials
           </button>
         </header>
 
         <AnimatePresence mode="wait">
           {!selectedClass ? (
-            <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
-              <div className="grid grid-cols-4 gap-6">
+            <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 sm:space-y-10">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 <SummaryCard label="Total Collection" val={`₹${stats.totalCollected.toLocaleString()}`} icon={<Banknote size={20} />} color="slate" />
                 <SummaryCard label="Pending Dues" val={`₹${stats.totalPending.toLocaleString()}`} icon={<Clock size={20} />} color="rose" />
                 <SummaryCard label="This Month" val={`₹${stats.monthlyRevenue.toLocaleString()}`} icon={<TrendingUp size={20} />} color="emerald" />
                 <SummaryCard label="Full Year Paid" val={stats.fullYearPaid} icon={<UserCheck size={20} />} color="amber" />
               </div>
 
-              <div className="grid grid-cols-3 gap-10">
-                <div className="col-span-2 bg-white rounded-[40px] p-10 border border-slate-100 shadow-sm">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-10">
+                <div className="col-span-1 lg:col-span-2 bg-white rounded-[40px] p-6 sm:p-10 border border-slate-100 shadow-sm">
                    <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-10 flex items-center gap-3">
                       <BarChart3 size={18} className="text-amber-500" /> Class-wise Collection
                    </h2>
@@ -163,7 +163,7 @@ export default function AdminFeesPage() {
                    </div>
                 </div>
 
-                <div className="bg-white rounded-[40px] p-10 border border-slate-100 shadow-sm overflow-hidden">
+                <div className="bg-white rounded-[40px] p-6 sm:p-10 border border-slate-100 shadow-sm overflow-hidden">
                    <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-8">Recent Payments</h2>
                    <div className="space-y-6">
                       {transactions.slice(0, 8).map((t, i) => (
@@ -184,7 +184,7 @@ export default function AdminFeesPage() {
             </motion.div>
           ) : (
             <motion.div key="details" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-               <div className="flex gap-3">
+               <div className="flex flex-wrap gap-3">
                   <StatusBtn label="All Students" active={statusFilter === 'all'} onClick={() => setStatusFilter('all')} count={classStudents.length} />
                   <StatusBtn label="Paid (Current Month)" active={statusFilter === 'paid'} onClick={() => setStatusFilter('paid')} color="emerald" icon={<CheckCircle2 size={14} />} />
                   <StatusBtn label="Unpaid" active={statusFilter === 'unpaid'} onClick={() => setStatusFilter('unpaid')} color="rose" icon={<XCircle size={14} />} />

@@ -131,20 +131,20 @@ export default function WebsiteManagement() {
   return (
     <div className="flex min-h-screen bg-[#F8F9FA]">
       <Sidebar role="admin" userName="Admin" userEmail="smtcpalani2017@gmail.com" />
-      <main className="flex-1 ml-64 min-h-screen">
-        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-8 sticky top-0 z-30">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen transition-all duration-300">
+        <header className="bg-white border-b border-gray-200 min-h-16 py-3 flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-8 pl-16 sm:pl-8 gap-3 sticky top-0 z-30">
           <div>
-            <h1 className="font-serif font-bold text-[#001F3F] text-xl">Website Management</h1>
+            <h1 className="font-serif font-bold text-[#001F3F] text-lg sm:text-xl">Website Management</h1>
             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Live Page Editor</p>
           </div>
-          <div className="flex space-x-3">
-             <button onClick={() => setShowResultModal(true)} className="flex items-center space-x-2 bg-navy text-gold px-4 py-2 rounded-xl text-xs font-black uppercase shadow-lg shadow-navy/20 hover:bg-navy-light transition-all"><Trophy size={16} /><span>Add Result</span></button>
-             <button onClick={() => setShowCourseModal(true)} className="flex items-center space-x-2 bg-navy text-gold px-4 py-2 rounded-xl text-xs font-black uppercase shadow-lg shadow-navy/20"><Plus size={16} /><span>Add Course</span></button>
-             <button onClick={() => setShowAddModal(true)} className="flex items-center space-x-2 bg-gold text-navy px-4 py-2 rounded-xl text-xs font-black uppercase shadow-lg shadow-gold/20"><Plus size={16} /><span>Add Faculty</span></button>
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+             <button onClick={() => setShowResultModal(true)} className="flex items-center space-x-2 bg-[#001F3F] text-[#D4AF37] px-3 sm:px-4 py-2 rounded-xl text-[10px] sm:text-xs font-black uppercase shadow-lg hover:bg-navy-light transition-all"><Trophy size={16} /><span>Add Result</span></button>
+             <button onClick={() => setShowCourseModal(true)} className="flex items-center space-x-2 bg-[#001F3F] text-[#D4AF37] px-3 sm:px-4 py-2 rounded-xl text-[10px] sm:text-xs font-black uppercase shadow-lg"><Plus size={16} /><span>Add Course</span></button>
+             <button onClick={() => setShowAddModal(true)} className="flex items-center space-x-2 bg-[#D4AF37] text-[#001229] px-3 sm:px-4 py-2 rounded-xl text-[10px] sm:text-xs font-black uppercase shadow-lg"><Plus size={16} /><span>Add Faculty</span></button>
           </div>
         </header>
 
-        <div className="p-8 space-y-16 pb-24">
+        <div className="p-4 sm:p-8 space-y-16 pb-24">
           {success && <div className="bg-green-50 border border-green-200 p-4 rounded-2xl flex items-center space-x-3 text-green-700 animate-in fade-in slide-in-from-top-4 mb-8"><CheckCircle2 size={20} /><span className="font-bold">{success}</span></div>}
 
           {/* ACADEMIC RESULTS SECTION */}

@@ -41,14 +41,14 @@ export default function AdminAnnouncementsPage() {
   return (
     <div className="flex min-h-screen bg-[#F8F9FA]">
       <Sidebar role="admin" userName="Admin" userEmail="smtcpalani2017@gmail.com" />
-      <main className="flex-1 ml-64 min-h-screen">
-        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-8 sticky top-0 z-30">
-          <h1 className="font-serif font-bold text-[#001F3F] text-xl">Announcements</h1>
-          <button onClick={() => setShowForm(true)} className="flex items-center space-x-2 bg-[#001F3F] text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-[#003366]">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen transition-all duration-300">
+        <header className="bg-white border-b border-gray-200 min-h-16 py-3 flex items-center justify-between px-4 sm:px-8 pl-16 sm:pl-8 sticky top-0 z-30">
+          <h1 className="font-serif font-bold text-[#001F3F] text-lg sm:text-xl">Announcements</h1>
+          <button onClick={() => setShowForm(true)} className="flex items-center space-x-2 bg-[#001F3F] text-white px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold hover:bg-[#003366]">
             <Plus size={16} /><span>New Announcement</span>
           </button>
         </header>
-        <div className="p-8 space-y-6">
+        <div className="p-4 sm:p-8 space-y-6">
           {loading ? <p className="text-gray-400 text-center py-16">Loading...</p> : items.length === 0 ? (
             <div className="text-center py-20"><Megaphone size={48} className="mx-auto text-gray-200 mb-4" /><p className="text-gray-400">No announcements yet</p></div>
           ) : items.map(a => (

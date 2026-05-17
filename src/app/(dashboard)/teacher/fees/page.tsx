@@ -88,14 +88,14 @@ export default function TeacherFeesDashboard() {
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans">
       <Sidebar role="teacher" />
-      <main className="flex-1 ml-64 min-h-screen p-10">
-        <header className="flex items-center justify-between mb-12">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen p-4 sm:p-10 transition-all duration-300">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-12 pl-12 sm:pl-0">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Fee Monitoring</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Fee Monitoring</h1>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Institutional Finance Sync</p>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
              <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={16} />
                 <input 
@@ -104,7 +104,7 @@ export default function TeacherFeesDashboard() {
                   className="pl-12 pr-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all w-64 shadow-sm"
                 />
              </div>
-             <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-2xl border border-slate-200 shadow-sm">
+             <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-2xl border border-slate-200 shadow-sm w-fit">
                 <Filter size={14} className="text-slate-300" />
                 <select 
                    value={selectedClass} 
@@ -119,7 +119,7 @@ export default function TeacherFeesDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           <div className="lg:col-span-2 space-y-6">
-             <div className="flex items-center justify-between px-2">
+             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-2">
                 <div className="flex gap-2">
                     <button onClick={() => setStatusFilter('all')} className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${statusFilter === 'all' ? 'bg-slate-900 text-white shadow-xl' : 'bg-white text-slate-400 border border-slate-100'}`}>All</button>
                     <button onClick={() => setStatusFilter('paid')} className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${statusFilter === 'paid' ? 'bg-emerald-500 text-white shadow-xl' : 'bg-white text-slate-400 border border-slate-100'}`}><CheckCircle2 size={14} /> Paid</button>

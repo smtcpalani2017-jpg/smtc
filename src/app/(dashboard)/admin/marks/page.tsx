@@ -53,14 +53,14 @@ export default function AdminMarksPage() {
   return (
     <div className="flex min-h-screen bg-[#F8F9FA]">
       <Sidebar role="admin" userName="Admin" userEmail="smtcpalani2017@gmail.com" />
-      <main className="flex-1 ml-64 min-h-screen">
-        <header className="bg-white border-b border-gray-200 h-16 flex items-center px-8 sticky top-0 z-30">
-          <h1 className="font-serif font-bold text-[#001F3F] text-xl">Test & Marks Analytics</h1>
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen transition-all duration-300">
+        <header className="bg-white border-b border-gray-200 min-h-16 py-3 flex items-center px-4 sm:px-8 pl-16 sm:pl-8 sticky top-0 z-30">
+          <h1 className="font-serif font-bold text-[#001F3F] text-lg sm:text-xl">Test & Marks Analytics</h1>
         </header>
 
-        <div className="p-8 space-y-6">
+        <div className="p-4 sm:p-8 space-y-6">
           {/* Summary */}
-          <div className="grid grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
             <div className="bg-white border border-gray-100 rounded-2xl p-5 text-center">
               <div className="text-3xl font-black text-[#001F3F]">{filtered.length}</div>
               <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mt-1">Total Records</div>
@@ -114,35 +114,37 @@ export default function AdminMarksPage() {
                 {SUBJECTS.map(s => <option key={s}>{s}</option>)}
               </select>
             </div>
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  {['Student', 'Class', 'Test Name', 'Subject', 'Marks', 'Grade'].map(h => (
-                    <th key={h} className="text-left px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={6} className="text-center py-10 text-gray-400">Loading...</td></tr>
-                ) : filtered.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-12 text-gray-400 text-sm">No marks uploaded yet</td></tr>
-                ) : filtered.map((m) => {
-                  const grade = m.marks >= 90 ? 'A+' : m.marks >= 75 ? 'A' : m.marks >= 60 ? 'B' : m.marks >= 45 ? 'C' : 'F'
-                  const gradeColor = grade === 'A+' || grade === 'A' ? 'text-green-600 bg-green-100' : grade === 'B' ? 'text-blue-600 bg-blue-100' : grade === 'C' ? 'text-yellow-600 bg-yellow-100' : 'text-red-600 bg-red-100'
-                  return (
-                    <tr key={m.id} className="border-b border-gray-50 hover:bg-gray-50">
-                      <td className="px-5 py-3 text-sm font-semibold text-[#001F3F]">{m.students?.name || '–'}</td>
-                      <td className="px-5 py-3"><span className="text-xs bg-[#001F3F]/10 text-[#001F3F] px-2 py-1 rounded-full font-bold">{m.students?.class || '–'}</span></td>
-                      <td className="px-5 py-3 text-sm text-gray-600">{m.test_name}</td>
-                      <td className="px-5 py-3 text-sm text-gray-500">{m.subject}</td>
-                      <td className="px-5 py-3 text-sm font-black text-[#001F3F]">{m.marks}<span className="text-gray-400 font-normal">/100</span></td>
-                      <td className="px-5 py-3"><span className={`text-xs font-black px-2 py-1 rounded-full ${gradeColor}`}>{grade}</span></td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100">
+                    {['Student', 'Class', 'Test Name', 'Subject', 'Marks', 'Grade'].map(h => (
+                      <th key={h} className="text-left px-5 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan={6} className="text-center py-10 text-gray-400">Loading...</td></tr>
+                  ) : filtered.length === 0 ? (
+                    <tr><td colSpan={6} className="text-center py-12 text-gray-400 text-sm">No marks uploaded yet</td></tr>
+                  ) : filtered.map((m) => {
+                    const grade = m.marks >= 90 ? 'A+' : m.marks >= 75 ? 'A' : m.marks >= 60 ? 'B' : m.marks >= 45 ? 'C' : 'F'
+                    const gradeColor = grade === 'A+' || grade === 'A' ? 'text-green-600 bg-green-100' : grade === 'B' ? 'text-blue-600 bg-blue-100' : grade === 'C' ? 'text-yellow-600 bg-yellow-100' : 'text-red-600 bg-red-100'
+                    return (
+                      <tr key={m.id} className="border-b border-gray-50 hover:bg-gray-50">
+                        <td className="px-5 py-3 text-sm font-semibold text-[#001F3F]">{m.students?.name || '–'}</td>
+                        <td className="px-5 py-3"><span className="text-xs bg-[#001F3F]/10 text-[#001F3F] px-2 py-1 rounded-full font-bold">{m.students?.class || '–'}</span></td>
+                        <td className="px-5 py-3 text-sm text-gray-600">{m.test_name}</td>
+                        <td className="px-5 py-3 text-sm text-gray-500">{m.subject}</td>
+                        <td className="px-5 py-3 text-sm font-black text-[#001F3F]">{m.marks}<span className="text-gray-400 font-normal">/100</span></td>
+                        <td className="px-5 py-3"><span className={`text-xs font-black px-2 py-1 rounded-full ${gradeColor}`}>{grade}</span></td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </main>

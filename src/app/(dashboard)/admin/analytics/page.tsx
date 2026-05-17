@@ -88,14 +88,14 @@ export default function AdminAnalytics() {
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans">
       <Sidebar role="admin" />
-      <main className="flex-1 ml-64 min-h-screen p-10 space-y-10">
-        <header className="flex items-center justify-between">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen p-4 sm:p-10 space-y-8 sm:space-y-10 transition-all duration-300">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pl-12 sm:pl-0">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Growth & Performance</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Growth & Performance</h1>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Real-time Institutional Insights</p>
           </div>
           
-          <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-slate-200 shadow-sm w-fit">
              <Filter size={14} className="text-slate-400" />
              <select 
                value={selectedYear} onChange={e => setSelectedYear(e.target.value)}

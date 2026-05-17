@@ -113,15 +113,15 @@ export default function AdminDashboard() {
   return (
     <div className="flex min-h-screen bg-[#F8F9FA]">
       <Sidebar role="admin" userName="Admin" userEmail="smtcpalani2017@gmail.com" />
-      <main className="flex-1 ml-64 min-h-screen">
+      <main className="flex-1 ml-0 md:ml-64 min-h-screen transition-all duration-300">
         {/* Top Header */}
-        <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-8 sticky top-0 z-30">
+        <header className="bg-white border-b border-gray-200 min-h-16 py-3 flex items-center justify-between px-4 sm:px-8 pl-16 sm:pl-8 sticky top-0 z-30">
           <div>
-            <h1 className="font-serif font-bold text-[#001F3F] text-xl">Admin Overview</h1>
-            <p className="text-xs text-gray-400">Sri Murugan Tuition Center – Palani</p>
+            <h1 className="font-serif font-bold text-[#001F3F] text-lg sm:text-xl">Admin Overview</h1>
+            <p className="text-[10px] sm:text-xs text-gray-400">Sri Murugan Tuition Center – Palani</p>
           </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-xs text-gray-400">Updated: {lastUpdated.toLocaleTimeString('en-IN')}</span>
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <span className="text-[10px] sm:text-xs text-gray-400 hidden xs:inline">Updated: {lastUpdated.toLocaleTimeString('en-IN')}</span>
             <button onClick={loadDashboardData} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors">
               <RefreshCw size={16} />
             </button>
@@ -137,7 +137,7 @@ export default function AdminDashboard() {
           </div>
         </header>
 
-        <div className="p-8 space-y-8">
+        <div className="p-4 sm:p-8 space-y-6 sm:space-y-8">
           {/* Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
             <StatsCard title="Total Students" value={stats.totalStudents} icon={Users} color="navy" subtitle={`${stats.boys} Boys · ${stats.girls} Girls`} />
