@@ -134,10 +134,20 @@ export default function TeacherAttendanceReport() {
         </header>
 
         <div className="space-y-10">
-          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-             <StatBox icon={<Activity size={20} />} label="Total Students" value={records.length} isActive={statusFilter === 'all'} onClick={() => setStatusFilter('all')} />
-             <StatBox icon={<CheckCircle2 size={20} />} label="Present Today" value={presentCount} isActive={statusFilter === 'present'} onClick={() => setStatusFilter('present')} activeColor="bg-emerald-500" />
-             <StatBox icon={<XCircle size={20} />} label="Absent Today" value={absentCount} isActive={statusFilter === 'absent'} onClick={() => setStatusFilter('absent')} activeColor="bg-rose-500" />
+          {/* Interaction Summary Cards */}
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-5">
+             <SummaryCard 
+                label="Total Students" value={records.length} icon={<Activity size={20} />} 
+                isActive={statusFilter === 'all'} onClick={() => setStatusFilter('all')} color="slate"
+             />
+             <SummaryCard 
+                label="Present Today" value={presentCount} icon={<CheckCircle2 size={20} />} 
+                isActive={statusFilter === 'present'} onClick={() => setStatusFilter('present')} color="emerald"
+             />
+             <SummaryCard 
+                label="Absent Today" value={absentCount} icon={<XCircle size={20} />} 
+                isActive={statusFilter === 'absent'} onClick={() => setStatusFilter('absent')} color="rose"
+             />
           </div>
 
           <div className="space-y-4">
@@ -190,12 +200,25 @@ export default function TeacherAttendanceReport() {
   )
 }
 
-function StatBox({ icon, label, value, isActive, onClick, activeColor = "bg-slate-900" }: any) {
+function SummaryCard({ label, value, icon, isActive, onClick, color }: any) {
+  const themes: any = {
+    slate: isActive ? 'bg-slate-900 text-white shadow-xl scale-[1.02]' : 'bg-white text-slate-950 border-slate-100 hover:border-slate-350 hover:shadow-md',
+    emerald: isActive ? 'bg-emerald-500 text-white shadow-xl scale-[1.02]' : 'bg-white text-emerald-600 border-slate-100 hover:border-emerald-500 hover:shadow-md',
+    rose: isActive ? 'bg-rose-500 text-white shadow-xl scale-[1.02]' : 'bg-white text-rose-600 border-slate-100 hover:border-rose-500 hover:shadow-md'
+  }
+
   return (
-    <button onClick={onClick} className={`flex-1 min-w-[200px] p-6 rounded-[24px] border transition-all duration-200 text-left relative overflow-hidden ${isActive ? activeColor + ' text-white border-transparent shadow-xl scale-[1.02]' : 'bg-white text-slate-900 border-slate-100 hover:border-slate-300 shadow-sm'}`}>
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${isActive ? 'bg-white/20' : 'bg-slate-50'}`}>{icon}</div>
-      <div className="text-3xl font-black mb-1 leading-none">{value}</div>
-      <div className={`text-[10px] font-bold uppercase tracking-widest ${isActive ? 'text-white/60' : 'text-slate-400'}`}>{label}</div>
+    <button 
+      onClick={onClick} 
+      className={`text-center sm:text-left rounded-[22px] sm:rounded-[28px] p-3.5 sm:p-6 transition-all duration-300 border shadow-sm relative overflow-hidden flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full ${themes[color]}`}
+    >
+       <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center ${isActive ? 'bg-white/10' : 'bg-slate-50'} shrink-0`}>
+         {React.cloneElement(icon, { className: 'w-4 h-4 sm:w-5 sm:h-5' })}
+       </div>
+       <div className="flex flex-col items-center sm:items-start">
+          <div className="text-xl sm:text-3xl font-black mb-0.5 leading-none tracking-tight">{value}</div>
+          <div className={`text-[7px] sm:text-[9px] font-black uppercase tracking-wider ${isActive ? 'text-white/50' : 'text-slate-400'} text-center sm:text-left`}>{label}</div>
+       </div>
     </button>
   )
 }
