@@ -25,7 +25,7 @@ export default function StudentManagement() {
   
   const [formData, setFormData] = useState({
     name: '', register_number: '', class: '', gender: 'Male',
-    parent_name: '', parent_phone: '', address: '', school_name: '',
+    parent_name: '', parent_phone: '', whatsapp_number: '', address: '', school_name: '',
     payment_plan: 'Monthly', monthly_fee: 0, total_year_fee: 0,
     join_date: new Date().toISOString().split('T')[0]
   })
@@ -83,7 +83,7 @@ export default function StudentManagement() {
     setEditingStudent(null)
     setFormData({
         name: '', register_number: '', class: classes[0]?.class_name || '', gender: 'Male',
-        parent_name: '', parent_phone: '', address: '', school_name: '',
+        parent_name: '', parent_phone: '', whatsapp_number: '', address: '', school_name: '',
         payment_plan: 'Monthly', monthly_fee: 0, total_year_fee: 0,
         join_date: new Date().toISOString().split('T')[0]
     })
@@ -94,7 +94,7 @@ export default function StudentManagement() {
     setEditingStudent(s)
     setFormData({
         name: s.name, register_number: s.register_number, class: s.class, gender: s.gender,
-        parent_name: s.parent_name, parent_phone: s.parent_phone, address: s.address, school_name: s.school_name,
+        parent_name: s.parent_name, parent_phone: s.parent_phone, whatsapp_number: s.whatsapp_number || '', address: s.address, school_name: s.school_name,
         payment_plan: s.payment_plan, monthly_fee: s.monthly_fee, total_year_fee: s.total_year_fee,
         join_date: s.join_date
     })
@@ -194,7 +194,8 @@ export default function StudentManagement() {
                             <div>
                                <label className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-3 flex items-center gap-2"><UserCircle size={12} /> Family</label>
                                <div className="text-sm font-black text-slate-900">{selectedStudent.parent_name}</div>
-                               <div className="text-xs font-bold text-slate-400 mt-0.5">{selectedStudent.parent_phone}</div>
+                               <div className="text-xs font-bold text-slate-400 mt-0.5">Phone: {selectedStudent.parent_phone}</div>
+                               <div className="text-xs font-bold text-emerald-600 mt-0.5">WhatsApp: {selectedStudent.whatsapp_number || selectedStudent.parent_phone}</div>
                             </div>
                             <div>
                                <label className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-3 flex items-center gap-2"><School size={12} /> School</label>
@@ -235,6 +236,7 @@ export default function StudentManagement() {
                                         <div><label className={labelClass}>Student Name</label><input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className={inputClass} /></div>
                                         <div><label className={labelClass}>Parent Name</label><input required type="text" value={formData.parent_name} onChange={e => setFormData({...formData, parent_name: e.target.value})} className={inputClass} /></div>
                                         <div><label className={labelClass}>Phone Number</label><input required type="text" value={formData.parent_phone} onChange={e => setFormData({...formData, parent_phone: e.target.value})} className={inputClass} /></div>
+                                        <div><label className={labelClass}>WhatsApp Number</label><input type="text" value={formData.whatsapp_number} onChange={e => setFormData({...formData, whatsapp_number: e.target.value})} className={inputClass} placeholder="Same as phone if empty" /></div>
                                     </div>
                                     <div className="space-y-4 sm:space-y-6">
                                         <div className="grid grid-cols-2 gap-4">

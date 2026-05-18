@@ -6,7 +6,7 @@ import Sidebar from '@/components/dashboard/Sidebar'
 import { 
   ArrowLeft, CheckCircle2, XCircle, Loader2, 
   GraduationCap, Check, Banknote, User, Clock,
-  Trophy, BookOpen, ChevronRight, BarChart3, Search, Save, Trash
+  Trophy, BookOpen, ChevronRight, BarChart3, Search, Save, Trash, X
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -24,6 +24,11 @@ export default function MyClasses() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [savingAttendance, setSavingAttendance] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
+  const [absentStudentsForAlert, setAbsentStudentsForAlert] = useState<any[]>([])
+  const [showAlertModal, setShowAlertModal] = useState(false)
+  const [alertStatuses, setAlertStatuses] = useState<Record<string, 'pending' | 'sending' | 'sent' | 'failed'>>({})
+  const [sequenceIndex, setSequenceIndex] = useState<number>(-1)
+  const [hasOpenedCurrent, setHasOpenedCurrent] = useState<boolean>(false)
 
   const currentMonthStr = new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
 
@@ -95,6 +100,75 @@ export default function MyClasses() {
     setAttendanceRecords(prev => ({ ...prev, [studentId]: nextStatus }))
   }
 
+  const getWhatsAppUrl = (student: any) => {
+    const phone = student.whatsapp_number || student.parent_phone || ''
+    let cleanPhone = phone.replace(/[^0-9]/g, '')
+    if (cleanPhone.length === 10) {
+      cleanPhone = '91' + cleanPhone
+    }
+    const todayStr = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    const text = `Dear Parent,\nYour child *${student.name}* was *ABSENT* for SMTC Tuition class today (${todayStr}). Please ensure their regular attendance.\n\n- SMTC Tuition Academy`
+    return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`
+  }
+
+  const triggerAutomaticAlerts = async (absents: any[]) => {
+    // Reset sequencer states when starting a new batch
+    setSequenceIndex(-1)
+    setHasOpenedCurrent(false)
+    
+    const statuses: Record<string, 'pending' | 'sending' | 'sent' | 'failed'> = {}
+    absents.forEach(s => { statuses[s.id] = 'sending' })
+    setAlertStatuses(statuses)
+
+    for (const s of absents) {
+      try {
+        const res = await fetch('/api/send-whatsapp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentName: s.name,
+            parentName: s.parent_name,
+            phone: s.whatsapp_number || s.parent_phone || ''
+          })
+        })
+        const data = await res.json()
+        if (data.success) {
+          setAlertStatuses(prev => ({ ...prev, [s.id]: 'sent' }))
+        } else {
+          setAlertStatuses(prev => ({ ...prev, [s.id]: 'failed' }))
+        }
+      } catch (err) {
+        setAlertStatuses(prev => ({ ...prev, [s.id]: 'failed' }))
+      }
+    }
+  }
+
+  const startSequence = () => {
+    setSequenceIndex(0)
+    setHasOpenedCurrent(false)
+  }
+
+  const handleOpenCurrent = () => {
+    const student = absentStudentsForAlert[sequenceIndex]
+    if (!student) return
+    const url = getWhatsAppUrl(student)
+    window.open(url, '_blank')
+    setHasOpenedCurrent(true)
+    setAlertStatuses(prev => ({ ...prev, [student.id]: 'sent' }))
+  }
+
+  const handleNextInSequence = () => {
+    if (sequenceIndex < absentStudentsForAlert.length - 1) {
+      setSequenceIndex(prev => prev + 1)
+      setHasOpenedCurrent(false)
+    } else {
+      setSequenceIndex(-1)
+      setShowAlertModal(false)
+      setSuccessMsg('All WhatsApp alerts processed!')
+      setTimeout(() => setSuccessMsg(''), 3000)
+    }
+  }
+
   const handleSaveAttendance = async () => {
     if (!selectedClass) return
     setSavingAttendance(true)
@@ -112,6 +186,12 @@ export default function MyClasses() {
 
     if (!error) {
       setSuccessMsg('Attendance saved successfully!')
+      const absents = students.filter(s => attendanceRecords[s.id] === 'absent')
+      if (absents.length > 0) {
+        setAbsentStudentsForAlert(absents)
+        setShowAlertModal(true)
+        triggerAutomaticAlerts(absents)
+      }
       setTimeout(() => setSuccessMsg(''), 3000)
     } else {
       alert('Error saving attendance: ' + error.message)
@@ -374,6 +454,144 @@ export default function MyClasses() {
              )}
           </AnimatePresence>
         </div>
+
+        {/* WhatsApp Absent Alerts Modal */}
+        <AnimatePresence>
+          {showAlertModal && (
+            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAlertModal(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" />
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl relative z-[210] flex flex-col max-h-[85vh]">
+                <div className="bg-slate-900 p-8 text-white relative">
+                  <button onClick={() => setShowAlertModal(false)} className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-all text-white/70 hover:text-white"><X size={18} /></button>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center shadow-lg"><XCircle size={24} /></div>
+                    <div>
+                      <h2 className="text-xl font-black">Absent Notification System</h2>
+                      <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest mt-0.5">Send Instant WhatsApp Alerts to Parents</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-8 overflow-y-auto space-y-6">
+                  {sequenceIndex !== -1 ? (
+                    <div className="bg-slate-50 border border-slate-100 rounded-[24px] p-6 text-center space-y-6">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sequencer Active</span>
+                        <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase">
+                          {sequenceIndex + 1} / {absentStudentsForAlert.length}
+                        </span>
+                      </div>
+                      
+                      <div className="w-16 h-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-2xl font-black mx-auto shadow-xl">
+                        {absentStudentsForAlert[sequenceIndex]?.name?.[0]}
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-xl font-black text-slate-900">{absentStudentsForAlert[sequenceIndex]?.name}</h3>
+                        <p className="text-xs text-slate-400 font-bold uppercase mt-1">Parent: {absentStudentsForAlert[sequenceIndex]?.parent_name} • {absentStudentsForAlert[sequenceIndex]?.whatsapp_number || absentStudentsForAlert[sequenceIndex]?.parent_phone}</p>
+                      </div>
+
+                      <div className="bg-white rounded-2xl p-4 border border-slate-100/80 text-left text-xs text-slate-500 font-medium whitespace-pre-line leading-relaxed">
+                        {`Dear Parent,\nYour child *${absentStudentsForAlert[sequenceIndex]?.name}* was *ABSENT* for SMTC Tuition class today. Please ensure their regular attendance.\n\n- SMTC Tuition Academy`}
+                      </div>
+                      
+                      <div className="pt-2 flex gap-3">
+                        {!hasOpenedCurrent ? (
+                          <button 
+                            onClick={handleOpenCurrent}
+                            className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2"
+                          >
+                            Open WhatsApp & Send
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={handleNextInSequence}
+                            className="flex-1 bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl transition-all flex items-center justify-center gap-2"
+                          >
+                            {sequenceIndex < absentStudentsForAlert.length - 1 ? 'Sent! Next Parent ➡️' : 'Finish & Close 🎉'}
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => setSequenceIndex(-1)} 
+                          className="px-5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl text-xs font-black uppercase tracking-widest transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={startSequence}
+                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 mb-4"
+                      >
+                        ⚡ Start Quick-Send Sequence ({absentStudentsForAlert.length} Parents)
+                      </button>
+
+                      <p className="text-slate-500 text-xs font-medium border-t border-slate-100 pt-4">
+                        Or click below to send individually:
+                      </p>
+                      
+                      <div className="space-y-3">
+                        {absentStudentsForAlert.map((s) => {
+                          const waUrl = getWhatsAppUrl(s)
+                          const phoneToShow = s.whatsapp_number || s.parent_phone || 'No phone'
+                          const status = alertStatuses[s.id] || 'pending'
+                          
+                          return (
+                            <div key={s.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-white hover:shadow-lg transition-all">
+                              <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-sm">{s.name[0]}</div>
+                                <div>
+                                  <div className="text-sm font-bold text-slate-900">{s.name}</div>
+                                  <div className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Parent: {s.parent_name} • {phoneToShow}</div>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center gap-2">
+                                {status === 'sending' && (
+                                  <span className="bg-amber-50 text-amber-600 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                                    <Loader2 size={10} className="animate-spin" /> Sending...
+                                  </span>
+                                )}
+                                {status === 'pending' && (
+                                  <span className="bg-slate-100 text-slate-400 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                                    Ready
+                                  </span>
+                                )}
+                                {status === 'sent' && (
+                                  <span className="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                                    <Check size={10} strokeWidth={4} /> Sent
+                                  </span>
+                                )}
+                                {status === 'failed' && (
+                                  <a 
+                                    href={waUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-md shadow-emerald-500/20 transition-all active:scale-95"
+                                  >
+                                    Manual Send
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+                
+                <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-center">
+                  <button onClick={() => setShowAlertModal(false)} className="w-full py-4 bg-white text-slate-900 border border-slate-200 hover:bg-slate-900 hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
+                    Done
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   )

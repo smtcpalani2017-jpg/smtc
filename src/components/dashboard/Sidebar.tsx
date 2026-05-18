@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Users, UserSquare2, CalendarCheck,
   GraduationCap, Megaphone, Settings, LogOut, BookOpen,
-  BarChart3, ClipboardList, Calendar, School, ChevronLeft, ChevronRight, Bell, Banknote, Globe, Menu, X
+  BarChart3, ClipboardList, Calendar, School, ChevronLeft, ChevronRight, Bell, Banknote, Globe, Menu, X, Archive
 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 
@@ -43,6 +43,7 @@ const Sidebar = ({ role: initialRole, userName: initialName = 'User', userEmail:
     { name: 'Attendance', href: '/admin/attendance', icon: CalendarCheck },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Fees', href: '/admin/fees', icon: Banknote },
+    { name: 'Archives', href: '/admin/archives', icon: Archive },
     { name: 'Website', href: '/admin/website', icon: Globe },
   ]
 
@@ -59,8 +60,10 @@ const Sidebar = ({ role: initialRole, userName: initialName = 'User', userEmail:
   const links = userData.role === 'admin' ? adminLinks : teacherLinks
   const initials = userData.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem('smtc_user')
+    const supabase = createClient()
+    await supabase.auth.signOut()
     router.push('/login')
   }
 

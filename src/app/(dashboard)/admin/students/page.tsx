@@ -24,6 +24,44 @@ export default function AdminStudentsPage() {
   const [selected, setSelected] = useState<Student | null>(null)
 
   const loadStudents = async () => {
+    setLoading(true)
+    try {
+      const { data: activeYear } = await supabase
+        .from('academic_years')
+        .select('id')
+        .eq('status', 'Active')
+        .limit(1)
+        .maybeSingle()
+
+      if (activeYear) {
+        const { data: records, error } = await supabase
+          .from('student_academic_records')
+          .select('*, students(*)')
+          .eq('academic_year_id', activeYear.id)
+          .eq('student_status', 'Active')
+          .order('created_at', { ascending: false })
+
+        if (!error && records) {
+          const mapped: Student[] = records.map((r: any) => ({
+            ...r.students,
+            class: r.class_name,
+            payment_plan: r.payment_plan,
+            monthly_fee: r.monthly_fee,
+            total_year_fee: r.full_year_fee,
+            join_date: r.join_date,
+            student_status: r.student_status
+          })).filter(r => r && r.id)
+
+          setStudents(mapped)
+          setFiltered(mapped)
+          setLoading(false)
+          return
+        }
+      }
+    } catch (e) {
+      console.log('Using direct students fallback:', e)
+    }
+
     const { data } = await supabase.from('students').select('*').order('created_at', { ascending: false })
     setStudents(data || [])
     setFiltered(data || [])
@@ -183,7 +221,9 @@ export default function AdminStudentsPage() {
             </div>
             {[
               ['Gender', selected.gender], ['Parent', selected.parent_name],
-              ['Phone', selected.parent_phone], ['Address', selected.address],
+              ['Phone', selected.parent_phone],
+              ['WhatsApp', (selected as any).whatsapp_number || selected.parent_phone],
+              ['Address', selected.address],
               ['Joined', selected.join_date ? new Date(selected.join_date).toLocaleDateString('en-IN') : '–'],
             ].map(([label, val]) => (
               <div key={label} className="flex justify-between py-2 border-b border-gray-50">
