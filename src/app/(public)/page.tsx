@@ -230,7 +230,11 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       const [facRes, courRes, resRes] = await Promise.all([
-        supabase.from('users').select('name, subject, experience, image_url').eq('role', 'staff').eq('is_featured', true),
+        supabase.from('users')
+          .select('name, subject, experience, image_url, is_featured')
+          .eq('role', 'staff')
+          .order('is_featured', { ascending: false, nullsFirst: false })
+          .order('created_at', { ascending: false }),
         supabase.from('website_courses').select('*').eq('is_active', true).order('created_at', { ascending: true }),
         supabase.from('website_results').select('*').eq('is_featured', true).limit(4)
       ])
