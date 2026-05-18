@@ -80,14 +80,12 @@ function ResultCarousel({ results }: { results: any[] }) {
         <div className="flex justify-between items-start">
            <div className="w-24 h-24 bg-gold/20 rounded-3xl border-4 border-gold/30 flex items-center justify-center overflow-hidden shadow-lg relative">
              {r.image_url ? (
-               <Image 
-                 src={r.image_url} 
-                 alt={r.student_name} 
-                 fill 
-                 sizes="(max-width: 480px) 150px, 200px"
-                 className="object-cover" 
-                 loading="lazy"
-               />
+               <img 
+                  src={r.image_url} 
+                  alt={r.student_name} 
+                  className="w-full h-full object-cover" 
+                  loading="lazy"
+                />
              ) : (
                <GraduationCap className="h-12 w-12 text-gold" />
              )}
@@ -408,14 +406,12 @@ export default function Home() {
             ) : faculty.map((f: any, i: number) => (
               <motion.div key={f.name} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ delay: i * 0.1 }} className="h-full">
                 <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 group hover:shadow-2xl hover:shadow-navy/10 transition-all duration-500 hover:-translate-y-3 h-full flex flex-col">
-                  <div className="aspect-[3/4] bg-gradient-to-br from-[#001F3F] to-[#001229] flex items-center justify-center relative overflow-hidden shrink-0">
+                  <div className="w-full aspect-[3/4] bg-gradient-to-br from-[#001F3F] to-[#001229] flex items-center justify-center relative overflow-hidden shrink-0">
                     {f.image_url ? (
-                      <Image 
+                      <img 
                         src={f.image_url} 
                         alt={f.name} 
-                        fill 
-                        sizes="(max-width: 480px) 150px, (max-width: 768px) 250px, 350px"
-                        className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                         loading="lazy"
                       />
                     ) : (
