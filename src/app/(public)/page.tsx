@@ -372,7 +372,7 @@ export default function Home() {
             </motion.div>
 
             <div className="lg:w-1/2 w-full flex justify-center">
-               <div className="w-full max-w-md h-[450px] relative">
+               <div className="w-full max-w-md h-[380px] sm:h-[450px] relative">
                   {loading ? (
                     <ResultSkeleton />
                   ) : results.length === 0 ? (
@@ -393,7 +393,7 @@ export default function Home() {
             <h2 className="section-title section-title-center !text-[#001F3F]">Our Expert Faculty</h2>
             <p className="text-slate-700 mt-6 max-w-2xl mx-auto font-medium">Guided by experience, driven by passion. Meet the mentors who shape future achievers.</p>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-16">
             {loading ? (
               <>
                 <FacultySkeleton />
@@ -406,7 +406,7 @@ export default function Home() {
             ) : faculty.map((f: any, i: number) => (
               <motion.div key={f.name} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} transition={{ delay: i * 0.1 }} className="h-full">
                 <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 group hover:shadow-2xl hover:shadow-navy/10 transition-all duration-500 hover:-translate-y-3 h-full flex flex-col">
-                  <div className="w-full aspect-[3/4] bg-gradient-to-br from-[#001F3F] to-[#001229] flex items-center justify-center relative overflow-hidden shrink-0">
+                  <div className="w-full h-56 sm:h-64 bg-gradient-to-br from-[#001F3F] to-[#001229] flex items-center justify-center relative overflow-hidden shrink-0">
                     {f.image_url ? (
                       <img 
                         src={f.image_url} 
