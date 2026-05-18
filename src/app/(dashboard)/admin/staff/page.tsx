@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Sidebar from '@/components/dashboard/Sidebar'
 import { UserPlus, Trash2, Edit2, Key, Users, X, Loader2 } from 'lucide-react'
-import { addStaffAction, updateStaffAction } from '@/app/actions/staff'
+import { addStaffAction, updateStaffAction, deleteStaffAction } from '@/app/actions/staff'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Staff {
@@ -22,6 +22,8 @@ export default function AdminStaffPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [deleteConfirmStaff, setDeleteConfirmStaff] = useState<Staff | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const loadStaff = async () => {
     setLoading(true)
@@ -61,19 +63,36 @@ export default function AdminStaffPage() {
     }
   }
 
-  const deleteStaff = async (id: string) => {
-    if (!confirm('Remove this staff member? This will delete their account access.')) return
-    await supabase.from('users').delete().eq('id', id)
-    loadStaff()
+  const deleteStaff = (staff: Staff) => {
+    setError('')
+    setDeleteConfirmStaff(staff)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirmStaff) return
+    setDeleting(true)
+    setError('')
+    try {
+      const result = await deleteStaffAction(deleteConfirmStaff.id)
+      if (!result.success) throw new Error(result.error || 'Failed to delete staff member.')
+      setDeleteConfirmStaff(null)
+      loadStaff()
+    } catch (err: any) {
+      setError(err.message || 'Error deleting staff.')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const openEdit = (staff: Staff) => {
+    setError('')
     setEditingStaff(staff)
     setForm({ name: staff.name, email: staff.email, password: '' })
     setShowForm(true)
   }
 
   const openAdd = () => {
+    setError('')
     setEditingStaff(null)
     setForm({ name: '', email: '', password: '' })
     setShowForm(true)
@@ -139,7 +158,7 @@ export default function AdminStaffPage() {
                       <button onClick={() => openEdit(s)} className="p-2.5 bg-slate-100 text-slate-900 rounded-xl hover:bg-slate-900 hover:text-white transition-all shadow-sm">
                         <Edit2 size={14} />
                       </button>
-                      <button onClick={() => deleteStaff(s.id)} className="p-2.5 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm">
+                      <button onClick={() => deleteStaff(s)} className="p-2.5 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -209,6 +228,45 @@ export default function AdminStaffPage() {
                   {saving ? <Loader2 className="animate-spin" size={16} /> : (editingStaff ? 'Save Changes' : 'Grant Access')}
                 </button>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteConfirmStaff && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDeleteConfirmStaff(null)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white rounded-[32px] sm:rounded-[40px] w-full max-w-md p-6 sm:p-8 shadow-2xl relative z-10 overflow-hidden text-center"
+            >
+              <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Trash2 size={28} />
+              </div>
+              <h2 className="text-xl font-black text-slate-900 mb-2">Remove Staff Member?</h2>
+              <p className="text-slate-500 text-sm mb-8 px-4">
+                Are you sure you want to remove <span className="font-bold text-slate-900">{deleteConfirmStaff.name}</span>? This will permanently delete their account and revoke all system access.
+              </p>
+
+              {error && <div className="mb-6 bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest p-4 rounded-2xl border border-rose-100 text-center">{error}</div>}
+
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setDeleteConfirmStaff(null)}
+                  className="flex-1 bg-slate-100 text-slate-700 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleDeleteConfirm}
+                  disabled={deleting}
+                  className="flex-1 bg-rose-600 text-white py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-rose-700 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {deleting ? <Loader2 className="animate-spin" size={14} /> : 'Delete'}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

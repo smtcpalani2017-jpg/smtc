@@ -1,5 +1,7 @@
 'use client'
 
+import { motion, AnimatePresence } from 'framer-motion'
+
 import React, { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Sidebar from '@/components/dashboard/Sidebar'
@@ -38,6 +40,9 @@ export default function WebsiteManagement() {
   const [showResultModal, setShowResultModal] = useState(false)
   const [editingFaculty, setEditingFaculty] = useState<any>(null)
   const [uploading, setUploading] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<{ table: string, id: string, name: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
   
   const [newFaculty, setNewFaculty] = useState({ name: '', email: '', subject: '', experience: '', image_url: '', is_featured: true, password: 'staff123' })
   const [newCourse, setNewCourse] = useState({ title: '', description: '', icon_name: 'BookOpen' })
@@ -69,28 +74,34 @@ export default function WebsiteManagement() {
     setSavingId(null)
   }
 
-  const handleDelete = async (table: string, id: string) => {
-    if (!confirm('Are you sure you want to delete this?')) return
+  const handleDelete = (table: string, id: string, name: string) => {
+    setDeleteError('')
+    setDeleteTarget({ table, id, name })
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    setDeleteError('')
     
-    if (table === 'users') {
-      setSavingId(id)
-      const res = await deleteStaffAction(id)
-      setSavingId(null)
-      if (!res.success) {
-        alert(res.error)
-        return
+    try {
+      if (deleteTarget.table === 'users') {
+        const res = await deleteStaffAction(deleteTarget.id)
+        if (!res.success) throw new Error(res.error || 'Failed to delete faculty member.')
+      } else {
+        const { error } = await supabase.from(deleteTarget.table).delete().eq('id', deleteTarget.id)
+        if (error) throw new Error(error.message)
       }
-    } else {
-      const { error } = await supabase.from(table).delete().eq('id', id)
-      if (error) {
-        alert(error.message)
-        return
-      }
+      
+      setSuccess('Deleted successfully')
+      setDeleteTarget(null)
+      loadData()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err: any) {
+      setDeleteError(err.message || 'Error occurred during deletion.')
+    } finally {
+      setDeleting(false)
     }
-    
-    setSuccess('Deleted successfully')
-    setTimeout(() => setSuccess(''), 3000)
-    loadData()
   }
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, staffId: string | 'new') => {
@@ -164,7 +175,7 @@ export default function WebsiteManagement() {
                              {uploading === `result_${r.id}` ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
                           </label>
                        </div>
-                       <button onClick={() => handleDelete('website_results', r.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all p-2 bg-red-50 rounded-xl"><Trash2 size={18} /></button>
+                       <button onClick={() => handleDelete('website_results', r.id, r.student_name)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all p-2 bg-red-50 rounded-xl"><Trash2 size={18} /></button>
                     </div>
                     <div className="relative z-10">
                        <input defaultValue={r.student_name} onBlur={e => handleUpdate('website_results', r.id, { student_name: e.target.value })} className="bg-transparent border-none p-0 text-sm font-bold text-navy focus:ring-0 w-full" />
@@ -212,7 +223,7 @@ export default function WebsiteManagement() {
                     <div className="flex gap-1 sm:gap-2 shrink-0">
                        <button onClick={() => { setEditingFaculty(f); setShowEditModal(true) }} className="p-2 bg-blue-50 text-blue-500 rounded-lg hover:bg-blue-500 hover:text-white transition-colors"><Edit2 size={16} /></button>
                        <button onClick={() => handleUpdate('users', f.id, { is_featured: !f.is_featured })} className={`p-2 rounded-lg transition-colors ${f.is_featured ? 'bg-gold text-navy' : 'bg-gray-50 text-gray-300'}`}><Star size={16} fill={f.is_featured ? 'currentColor' : 'none'} /></button>
-                       <button onClick={() => handleDelete('users', f.id)} className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={16} /></button>
+                       <button onClick={() => handleDelete('users', f.id, f.name)} className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors"><Trash2 size={16} /></button>
                     </div>
                  </div>
                ))}
@@ -233,7 +244,7 @@ export default function WebsiteManagement() {
                            <div className="p-2.5 sm:p-3 bg-navy text-gold rounded-2xl shrink-0">{ICON_OPTIONS[c.icon_name as keyof typeof ICON_OPTIONS] || <BookOpen size={24} />}</div>
                            <input defaultValue={c.title} onBlur={e => handleUpdate('website_courses', c.id, { title: e.target.value })} className="w-full min-w-0 bg-transparent border-none font-bold text-navy text-base sm:text-lg focus:ring-0 p-0" />
                         </div>
-                        <button onClick={() => handleDelete('website_courses', c.id)} className="sm:opacity-0 sm:group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all p-2 bg-red-50 rounded-xl shrink-0"><Trash2 size={18} /></button>
+                        <button onClick={() => handleDelete('website_courses', c.id, c.title)} className="sm:opacity-0 sm:group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all p-2 bg-red-50 rounded-xl shrink-0"><Trash2 size={18} /></button>
                      </div>
                     <textarea defaultValue={c.description} onBlur={e => handleUpdate('website_courses', c.id, { description: e.target.value })} rows={3} className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm text-gray-500 resize-none focus:ring-gold" />
                      <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-gray-50">
@@ -347,6 +358,51 @@ export default function WebsiteManagement() {
             </div>
           </div>
         )}
+      
+        {/* Delete Confirmation Modal */}
+        <AnimatePresence>
+          {deleteTarget && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDeleteTarget(null)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" />
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="bg-white rounded-[32px] sm:rounded-[40px] w-full max-w-md p-6 sm:p-8 shadow-2xl relative z-10 overflow-hidden text-center"
+              >
+                <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Trash2 size={28} />
+                </div>
+                <h2 className="text-xl font-black text-slate-900 mb-2">Delete Item?</h2>
+                <p className="text-slate-500 text-sm mb-8 px-4">
+                  Are you sure you want to delete <span className="font-bold text-slate-900">{deleteTarget.name}</span>? This action cannot be undone.
+                </p>
+
+                {deleteError && (
+                  <div className="mb-6 bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest p-4 rounded-2xl border border-rose-100 text-center">
+                    {deleteError}
+                  </div>
+                )}
+
+                <div className="flex gap-4">
+                  <button 
+                    type="button"
+                    onClick={() => setDeleteTarget(null)}
+                    className="flex-1 bg-slate-100 text-slate-700 py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={handleDeleteConfirm}
+                    disabled={deleting}
+                    className="flex-1 bg-rose-600 text-white py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-rose-700 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                  >
+                    {deleting ? <Loader2 className="animate-spin" size={14} /> : 'Delete'}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   )

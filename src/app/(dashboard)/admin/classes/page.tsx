@@ -29,6 +29,8 @@ export default function AdminClassManagement() {
   const [showModal, setShowModal] = useState(false)
   const [editingClass, setEditingClass] = useState<any | null>(null)
   const [formData, setFormData] = useState({ class_name: '', staff_id: '' })
+  const [deleteConfirmClass, setDeleteConfirmClass] = useState<any | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const loadData = async () => {
     setLoading(true)
@@ -102,11 +104,21 @@ export default function AdminClassManagement() {
     loadData()
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this class?')) return
-    const { error } = await supabase.from('classes').delete().eq('id', id)
-    if (!error) loadData()
-    else alert(error.message)
+  const handleDelete = (cls: any) => {
+    setDeleteConfirmClass(cls)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirmClass) return
+    setDeleting(true)
+    const { error } = await supabase.from('classes').delete().eq('id', deleteConfirmClass.id)
+    if (!error) {
+      setDeleteConfirmClass(null)
+      loadData()
+    } else {
+      alert(error.message)
+    }
+    setDeleting(false)
   }
 
   return (
@@ -166,7 +178,7 @@ export default function AdminClassManagement() {
                            <div className="bg-white/10 p-3 rounded-2xl text-white"><GraduationCap size={24} /></div>
                            <div className="flex gap-2" onClick={e => e.stopPropagation()}>
                               <button onClick={() => { setEditingClass(cls); setFormData({ class_name: cls.class_name, staff_id: cls.staff_id }); setShowModal(true); }} className="p-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all"><Edit2 size={14} /></button>
-                              <button onClick={() => handleDelete(cls.id)} className="p-2 bg-rose-500/20 hover:bg-rose-500 text-white rounded-xl transition-all"><Trash2 size={14} /></button>
+                              <button onClick={() => handleDelete(cls)} className="p-2 bg-rose-500/20 hover:bg-rose-500 text-white rounded-xl transition-all"><Trash2 size={14} /></button>
                            </div>
                         </div>
                         <h3 className="text-2xl font-black">{cls.class_name}</h3>
@@ -319,6 +331,30 @@ export default function AdminClassManagement() {
                       <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Assign Staff</label><select required value={formData.staff_id || ''} onChange={e => setFormData({...formData, staff_id: e.target.value})} className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-slate-900 cursor-pointer"><option value="">Select a Teacher</option>{staff.map(s => <option key={s.id} value={s.id}>{s.name} ({s.subject})</option>)}</select></div>
                       <button className="w-full bg-slate-900 text-white py-5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-900/20 hover:bg-slate-800 transition-all">Save Class Details</button>
                    </form>
+                </motion.div>
+             </div>
+           )}
+        </AnimatePresence>
+
+        {/* Delete Confirmation Modal */}
+        <AnimatePresence>
+           {deleteConfirmClass && (
+             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDeleteConfirmClass(null)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" />
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="bg-white w-full max-w-md rounded-[32px] sm:rounded-[40px] p-6 sm:p-10 shadow-2xl relative z-10 text-center">
+                   <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                     <Trash2 size={28} />
+                   </div>
+                   <h2 className="text-xl font-black text-slate-900 mb-2">Delete Class?</h2>
+                   <p className="text-slate-500 text-sm mb-8 px-4">
+                     Are you sure you want to delete class <span className="font-bold text-slate-900">{deleteConfirmClass.class_name}</span>? This will permanently delete the class and all associated data.
+                   </p>
+                   <div className="flex gap-4">
+                      <button type="button" onClick={() => setDeleteConfirmClass(null)} className="flex-1 bg-slate-100 text-slate-700 py-4 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
+                      <button type="button" onClick={handleDeleteConfirm} disabled={deleting} className="flex-1 bg-rose-600 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-rose-700 transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                        {deleting ? <Loader2 className="animate-spin" size={14} /> : 'Delete'}
+                      </button>
+                   </div>
                 </motion.div>
              </div>
            )}

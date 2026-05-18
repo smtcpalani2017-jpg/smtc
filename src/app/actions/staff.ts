@@ -87,7 +87,9 @@ export async function deleteStaffAction(userId: string) {
   try {
     // 1. Delete Auth User (This is critical for cleaning up credentials)
     const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
-    if (authError) throw authError
+    if (authError) {
+      console.warn('Auth user deletion warning (e.g. seeded user):', authError.message)
+    }
 
     // 2. Delete from DB Users table
     const { error: dbError } = await supabaseAdmin.from('users').delete().eq('id', userId)
@@ -96,6 +98,13 @@ export async function deleteStaffAction(userId: string) {
     return { success: true }
   } catch (error: any) {
     console.error('Error deleting staff:', error)
-    return { success: false, error: error.message }
+    let friendlyError = error.message || 'Error deleting staff.'
+    if (
+      friendlyError.includes('violates foreign key constraint') && 
+      (friendlyError.includes('classes_staff_id_fkey') || friendlyError.includes('classes'))
+    ) {
+      friendlyError = 'Cannot remove this staff member because they are currently assigned as a teacher to one or more classes. Please reassign their classes first.'
+    }
+    return { success: false, error: friendlyError }
   }
 }
