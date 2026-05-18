@@ -63,14 +63,86 @@ export default function StudentManagement() {
        finalData.register_number = generateRegNo()
     }
 
-    if (editingStudent) {
-      const { error } = await supabase.from('students').update(finalData).eq('id', editingStudent.id)
-      if (!error) { setShowModal(false); loadData(); }
-    } else {
-      const { error } = await supabase.from('students').insert([finalData])
-      if (!error) { setShowModal(false); loadData(); }
+    try {
+      if (editingStudent) {
+        // 1. Update students table
+        const { error: updateError } = await supabase
+          .from('students')
+          .update(finalData)
+          .eq('id', editingStudent.id)
+        
+        if (!updateError) {
+          // 2. Try to get active academic year
+          const { data: activeYear } = await supabase
+            .from('academic_years')
+            .select('id')
+            .eq('status', 'Active')
+            .limit(1)
+            .maybeSingle()
+          
+          if (activeYear) {
+            // 3. Upsert into student_academic_records
+            await supabase
+              .from('student_academic_records')
+              .upsert({
+                student_id: editingStudent.id,
+                academic_year_id: activeYear.id,
+                class_name: finalData.class,
+                join_date: finalData.join_date,
+                payment_plan: finalData.payment_plan || 'Monthly',
+                monthly_fee: finalData.monthly_fee || 0,
+                full_year_fee: finalData.total_year_fee || 0,
+                student_status: 'Active'
+              }, { onConflict: 'student_id,academic_year_id' })
+          }
+          
+          setShowModal(false)
+          loadData()
+        } else {
+          alert('Error updating student: ' + updateError.message)
+        }
+      } else {
+        // 1. Insert into students table
+        const { data: newStudent, error: insertError } = await supabase
+          .from('students')
+          .insert([finalData])
+          .select()
+          .single()
+        
+        if (!insertError && newStudent) {
+          // 2. Try to get active academic year
+          const { data: activeYear } = await supabase
+            .from('academic_years')
+            .select('id')
+            .eq('status', 'Active')
+            .limit(1)
+            .maybeSingle()
+          
+          if (activeYear) {
+            // 3. Create active academic record
+            await supabase.from('student_academic_records').insert([{
+              student_id: newStudent.id,
+              academic_year_id: activeYear.id,
+              class_name: finalData.class,
+              join_date: finalData.join_date,
+              payment_plan: finalData.payment_plan || 'Monthly',
+              monthly_fee: finalData.monthly_fee || 0,
+              full_year_fee: finalData.total_year_fee || 0,
+              student_status: 'Active'
+            }])
+          }
+          
+          setShowModal(false)
+          loadData()
+        } else if (insertError) {
+          alert('Error adding student: ' + insertError.message)
+        }
+      }
+    } catch (err: any) {
+      alert('An unexpected error occurred: ' + err.message)
+    } finally {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   const handleDelete = async (id: string) => {

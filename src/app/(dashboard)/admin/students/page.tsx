@@ -3,15 +3,14 @@
 import React, { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Sidebar from '@/components/dashboard/Sidebar'
-import { Search, Filter, Eye, Trash2, UserPlus, Download, ChevronDown } from 'lucide-react'
+import { Search, Filter, Eye, Trash2, UserPlus, Download, ChevronDown, Calendar, CheckCircle2, XCircle, AlertCircle, Info, Loader2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface Student {
   id: string; name: string; register_number: string; class: string
   gender: string; parent_name: string; parent_phone: string
   address: string; join_date: string; created_at: string; created_by?: string
 }
-
-const CLASSES = ['All', '10th A', '10th B', '11th Science', '11th Commerce', '12th Science', '12th Commerce', 'NEET', 'JEE']
 
 export default function AdminStudentsPage() {
   const supabase = createClient()
@@ -22,9 +21,31 @@ export default function AdminStudentsPage() {
   const [genderFilter, setGenderFilter] = useState('All')
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Student | null>(null)
+  const [attendanceHistory, setAttendanceHistory] = useState<{ date: string; status: string }[]>([])
+  const [loadingAttendance, setLoadingAttendance] = useState(false)
+  const [classesList, setClassesList] = useState<string[]>(['All'])
 
   const loadStudents = async () => {
     setLoading(true)
+    try {
+      // Fetch dynamic classes created by admin
+      const { data: classesData } = await supabase
+        .from('classes')
+        .select('class_name')
+        .not('class_name', 'is', null)
+      
+      if (classesData) {
+        const sortedClasses = classesData.map(c => c.class_name).filter(Boolean)
+        const uniqueClasses = Array.from(new Set(sortedClasses)).sort()
+        setClassesList(['All', ...uniqueClasses])
+      } else {
+        setClassesList(['All'])
+      }
+    } catch (e) {
+      console.error('Failed to load classes:', e)
+      setClassesList(['All'])
+    }
+
     try {
       const { data: activeYear } = await supabase
         .from('academic_years')
@@ -77,6 +98,34 @@ export default function AdminStudentsPage() {
   }, [])
 
   useEffect(() => {
+    if (selected) {
+      const fetchAttendance = async () => {
+        setLoadingAttendance(true)
+        try {
+          const { data, error } = await supabase
+            .from('attendance')
+            .select('date, status')
+            .eq('student_id', selected.id)
+            .order('date', { ascending: false })
+          
+          if (!error && data) {
+            setAttendanceHistory(data)
+          } else {
+            setAttendanceHistory([])
+          }
+        } catch (e) {
+          console.error('Failed to load student attendance:', e)
+          setAttendanceHistory([])
+        }
+        setLoadingAttendance(false)
+      }
+      fetchAttendance()
+    } else {
+      setAttendanceHistory([])
+    }
+  }, [selected])
+
+  useEffect(() => {
     let result = [...students]
     if (search) result = result.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.register_number?.toLowerCase().includes(search.toLowerCase()))
     if (classFilter !== 'All') result = result.filter(s => s.class === classFilter)
@@ -119,7 +168,7 @@ export default function AdminStudentsPage() {
                 value={classFilter}
                 onChange={e => setClassFilter(e.target.value)}
               >
-                {CLASSES.map(c => <option key={c}>{c}</option>)}
+                {classesList.map(c => <option key={c}>{c}</option>)}
               </select>
               <select
                 className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-[#001F3F] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
@@ -203,37 +252,247 @@ export default function AdminStudentsPage() {
       </main>
 
       {/* Student Detail Modal */}
-      {selected && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelected(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
-              <h2 className="font-serif font-bold text-[#001F3F] text-lg">Student Profile</h2>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+      <AnimatePresence>
+        {selected && (() => {
+          const totalClasses = attendanceHistory.length
+          const absentDays = attendanceHistory.filter(r => r.status === 'absent').length
+          const presentDays = attendanceHistory.filter(r => r.status === 'present').length
+          const attendanceRate = totalClasses > 0 ? Math.round((presentDays / totalClasses) * 100) : 100
+
+          const formatDate = (dateStr: string) => {
+            const parts = dateStr.split('-')
+            if (parts.length === 3) {
+              const y = parseInt(parts[0], 10)
+              const m = parseInt(parts[1], 10) - 1
+              const d = parseInt(parts[2], 10)
+              return new Date(y, m, d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+            }
+            return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+          }
+
+          const getWeekday = (dateStr: string) => {
+            const parts = dateStr.split('-')
+            if (parts.length === 3) {
+              const y = parseInt(parts[0], 10)
+              const m = parseInt(parts[1], 10) - 1
+              const d = parseInt(parts[2], 10)
+              return new Date(y, m, d).toLocaleDateString('en-IN', { weekday: 'long' })
+            }
+            return new Date(dateStr).toLocaleDateString('en-IN', { weekday: 'long' })
+          }
+
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+              {/* Overlay */}
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }} 
+                onClick={() => setSelected(null)} 
+                className="fixed inset-0 bg-slate-900/60 backdrop-blur-md" 
+              />
+
+              {/* Modal Box */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+                animate={{ opacity: 1, scale: 1, y: 0 }} 
+                exit={{ opacity: 0, scale: 0.95, y: 20 }} 
+                className="bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl relative z-10 flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]"
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Left Panel: Profile and Info */}
+                <div className="bg-slate-50 md:w-5/12 p-6 sm:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-100 overflow-y-auto">
+                  <div className="space-y-6">
+                    {/* Modal Header for Mobile */}
+                    <div className="flex md:hidden items-center justify-between">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student Profile</span>
+                      <button onClick={() => setSelected(null)} className="w-8 h-8 rounded-full bg-slate-200/50 hover:bg-slate-200 text-slate-500 hover:text-slate-700 transition-colors flex items-center justify-center font-bold">✕</button>
+                    </div>
+
+                    {/* Avatar & Header Info */}
+                    <div className="flex items-center space-x-4">
+                      <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl font-black shadow-md border ${selected.gender === 'Male' ? 'bg-blue-100 border-blue-200 text-blue-700' : 'bg-pink-100 border-pink-200 text-pink-700'}`}>
+                        {selected.name.charAt(0)}
+                      </div>
+                      <div>
+                        <h3 className="font-serif font-black text-[#001F3F] text-lg sm:text-xl tracking-tight leading-tight">{selected.name}</h3>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          <span className="text-[10px] bg-[#001F3F]/10 text-[#001F3F] px-2 py-0.5 rounded-full font-bold uppercase">{selected.class}</span>
+                          <span className="text-[10px] bg-slate-200/60 text-slate-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-wide font-mono">{selected.register_number}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* General Details Listing */}
+                    <div className="space-y-3.5 pt-4">
+                      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Personal Information</h4>
+                      {[
+                        { label: 'Gender', val: selected.gender, color: selected.gender === 'Male' ? 'text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold text-xs' : 'text-pink-600 bg-pink-50 px-2 py-0.5 rounded-md font-bold text-xs' },
+                        { label: 'Parent Name', val: selected.parent_name },
+                        { label: 'Primary Contact', val: selected.parent_phone },
+                        { label: 'WhatsApp', val: (selected as any).whatsapp_number || selected.parent_phone },
+                        { label: 'Home Address', val: selected.address, className: 'text-xs text-right whitespace-pre-line leading-relaxed max-w-[200px]' },
+                        { label: 'Joined Academy', val: selected.join_date ? new Date(selected.join_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '–' },
+                      ].map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-start py-2.5 border-b border-slate-100">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase pt-0.5">{item.label}</span>
+                          <span className={item.color || item.className || "text-sm text-[#001F3F] font-semibold text-right"}>{item.val}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Close Button for Desktop */}
+                  <div className="hidden md:block pt-6">
+                    <button 
+                      onClick={() => setSelected(null)} 
+                      className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl transition-all duration-200"
+                    >
+                      Close Profile
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right Panel: Attendance Report */}
+                <div className="md:w-7/12 p-6 sm:p-8 flex flex-col justify-between overflow-y-auto max-h-[50vh] md:max-h-none">
+                  <div className="space-y-6">
+                    {/* Section Title */}
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                        <Calendar size={14} className="text-[#D4AF37]" /> Attendance & Presence Report
+                      </h3>
+                      {/* Close Cross for Desktop only */}
+                      <button onClick={() => setSelected(null)} className="hidden md:flex w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors items-center justify-center font-bold">✕</button>
+                    </div>
+
+                    {loadingAttendance ? (
+                      <div className="py-20 flex flex-col items-center justify-center gap-3">
+                        <Loader2 className="animate-spin text-slate-300" size={32} />
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fetching presence logs...</span>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Attendance stats cards */}
+                        <div className="grid grid-cols-3 gap-3">
+                          {/* Presence Rate Card */}
+                          <div className={`p-3.5 rounded-2xl border text-center flex flex-col justify-center items-center ${
+                            totalClasses === 0 
+                              ? 'bg-slate-50 border-slate-100 text-slate-400' 
+                              : absentDays === 0
+                              ? 'bg-amber-50 border-amber-100 text-[#D4AF37]'
+                              : (presentDays / totalClasses) >= 0.8
+                              ? 'bg-emerald-50 border-emerald-100 text-emerald-600'
+                              : 'bg-rose-50 border-rose-100 text-rose-600'
+                          }`}>
+                            <div className="text-xl sm:text-2xl font-black leading-none">
+                              {totalClasses === 0 ? '—' : `${attendanceRate}%`}
+                            </div>
+                            <span className="text-[8px] font-black uppercase tracking-wider mt-1 opacity-70">Presence</span>
+                          </div>
+
+                          {/* Total Classes Conducted */}
+                          <div className="p-3.5 rounded-2xl border border-slate-100 bg-slate-50/50 text-slate-700 text-center flex flex-col justify-center items-center">
+                            <div className="text-xl sm:text-2xl font-black leading-none">{totalClasses}</div>
+                            <span className="text-[8px] font-black uppercase tracking-wider mt-1 opacity-70">Total Days</span>
+                          </div>
+
+                          {/* Days Absent Card */}
+                          <div className={`p-3.5 rounded-2xl border text-center flex flex-col justify-center items-center ${
+                            absentDays > 0
+                              ? 'bg-rose-50 border-rose-100 text-rose-600'
+                              : 'bg-emerald-50 border-emerald-100 text-emerald-600'
+                          }`}>
+                            <div className="text-xl sm:text-2xl font-black leading-none">
+                              {absentDays}
+                            </div>
+                            <span className="text-[8px] font-black uppercase tracking-wider mt-1 opacity-70">Absences</span>
+                          </div>
+                        </div>
+
+                        {/* Visual progress bar */}
+                        {totalClasses > 0 && (
+                          <div className="space-y-1 bg-slate-50/50 p-4 rounded-2xl border border-slate-100/50">
+                            <div className="flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                              <span>Attendance Progress</span>
+                              <span className="text-slate-700 font-bold">
+                                {presentDays} of {totalClasses} Sessions
+                              </span>
+                            </div>
+                            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex">
+                              <div 
+                                className="bg-emerald-500 h-full transition-all duration-500" 
+                                style={{ width: `${(presentDays / totalClasses) * 100}%` }} 
+                              />
+                              <div 
+                                className="bg-rose-500 h-full transition-all duration-500" 
+                                style={{ width: `${(absentDays / totalClasses) * 100}%` }} 
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Absence List Section */}
+                        <div className="space-y-3 pt-2">
+                          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Absence Dates Log</h4>
+                          
+                          {totalClasses === 0 ? (
+                            <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                              <Info size={24} className="mx-auto text-slate-300 mb-2" />
+                              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">No Attendance Logs Available</p>
+                              <p className="text-[9px] text-slate-350 uppercase mt-1">This student has not been marked in any attendance sheet yet.</p>
+                            </div>
+                          ) : absentDays === 0 ? (
+                            <div className="p-8 text-center bg-amber-50/50 rounded-2xl border border-amber-100/70 flex flex-col items-center justify-center">
+                              <span className="text-2xl mb-1.5">🌟</span>
+                              <p className="text-xs font-black text-amber-700 uppercase tracking-wider">100% Perfect Attendance!</p>
+                              <p className="text-[9px] text-amber-600/70 uppercase mt-0.5">This student has been present for all recorded class sessions.</p>
+                            </div>
+                          ) : (
+                            <div className="max-h-[220px] overflow-y-auto pr-1 space-y-2 custom-scrollbar">
+                              {attendanceHistory
+                                .filter(r => r.status === 'absent')
+                                .map((record, index) => (
+                                  <div key={index} className="flex items-center justify-between p-3 bg-rose-50/50 hover:bg-rose-50 border border-rose-100/40 rounded-xl transition-all">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                                        <XCircle size={16} />
+                                      </div>
+                                      <div>
+                                        <div className="text-sm font-bold text-rose-950">
+                                          {formatDate(record.date)}
+                                        </div>
+                                        <div className="text-[9px] text-rose-500 font-bold uppercase tracking-wider">
+                                          {getWeekday(record.date)}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <span className="bg-rose-500 text-white px-2.5 py-1 rounded-md text-[8px] font-black uppercase tracking-wider shadow-sm">
+                                      Absent
+                                    </span>
+                                  </div>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Close Button for Mobile only */}
+                  <div className="block md:hidden pt-6">
+                    <button 
+                      onClick={() => setSelected(null)} 
+                      className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl transition-all duration-200"
+                    >
+                      Close Profile
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-black ${selected.gender === 'Male' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'}`}>
-                {selected.name.charAt(0)}
-              </div>
-              <div>
-                <h3 className="font-bold text-[#001F3F] text-lg">{selected.name}</h3>
-                <p className="text-xs text-gray-400">{selected.register_number} · {selected.class}</p>
-              </div>
-            </div>
-            {[
-              ['Gender', selected.gender], ['Parent', selected.parent_name],
-              ['Phone', selected.parent_phone],
-              ['WhatsApp', (selected as any).whatsapp_number || selected.parent_phone],
-              ['Address', selected.address],
-              ['Joined', selected.join_date ? new Date(selected.join_date).toLocaleDateString('en-IN') : '–'],
-            ].map(([label, val]) => (
-              <div key={label} className="flex justify-between py-2 border-b border-gray-50">
-                <span className="text-xs font-bold text-gray-400 uppercase">{label}</span>
-                <span className="text-sm text-[#001F3F] font-medium">{val}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+          )
+        })()}
+      </AnimatePresence>
     </div>
   )
 }
