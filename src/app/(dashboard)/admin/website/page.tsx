@@ -178,17 +178,17 @@ export default function WebsiteManagement() {
                        <button onClick={() => handleDelete('website_results', r.id, r.student_name)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all p-2 bg-red-50 rounded-xl"><Trash2 size={18} /></button>
                     </div>
                     <div className="relative z-10">
-                       <input defaultValue={r.student_name} onBlur={e => handleUpdate('website_results', r.id, { student_name: e.target.value })} className="bg-transparent border-none p-0 text-sm font-bold text-navy focus:ring-0 w-full" />
-                       <input defaultValue={r.exam_name} onBlur={e => handleUpdate('website_results', r.id, { exam_name: e.target.value })} className="bg-transparent border-none p-0 text-[10px] font-bold text-gray-400 uppercase tracking-widest focus:ring-0 w-full" />
+                       <input defaultValue={r.student_name || ''} onBlur={e => handleUpdate('website_results', r.id, { student_name: e.target.value })} className="bg-transparent border-none p-0 text-sm font-bold text-navy focus:ring-0 w-full" />
+                       <input defaultValue={r.exam_name || ''} onBlur={e => handleUpdate('website_results', r.id, { exam_name: e.target.value })} className="bg-transparent border-none p-0 text-[10px] font-bold text-gray-400 uppercase tracking-widest focus:ring-0 w-full" />
                     </div>
                     <div className="grid grid-cols-1 gap-2 pt-2 border-t border-gray-50 relative z-10">
                        <div className="flex justify-between items-center">
                           <span className="text-[10px] text-gray-400 font-bold">Score:</span>
-                          <input defaultValue={r.score} onBlur={e => handleUpdate('website_results', r.id, { score: e.target.value })} className="bg-transparent border-none p-0 text-[10px] font-black text-navy focus:ring-0 text-right" />
+                          <input defaultValue={r.score || ''} onBlur={e => handleUpdate('website_results', r.id, { score: e.target.value })} className="bg-transparent border-none p-0 text-[10px] font-black text-navy focus:ring-0 text-right" />
                        </div>
                        <div className="flex justify-between items-center">
                           <span className="text-[10px] text-gray-400 font-bold">Badge:</span>
-                          <input defaultValue={r.achievement} onBlur={e => handleUpdate('website_results', r.id, { achievement: e.target.value })} className="bg-transparent border-none p-0 text-[10px] font-black text-gold focus:ring-0 text-right" />
+                          <input defaultValue={r.achievement || ''} onBlur={e => handleUpdate('website_results', r.id, { achievement: e.target.value })} className="bg-transparent border-none p-0 text-[10px] font-black text-gold focus:ring-0 text-right" />
                        </div>
                     </div>
                  </div>
@@ -213,11 +213,11 @@ export default function WebsiteManagement() {
                        </label>
                     </div>
                     <div className="flex-1 min-w-0 grid grid-cols-1 gap-0.5 sm:gap-1">
-                       <input defaultValue={f.name} onBlur={e => handleUpdate('users', f.id, { name: e.target.value })} className="w-full min-w-0 bg-transparent border-none p-0 text-xs sm:text-sm font-bold text-navy focus:ring-0" />
+                       <input defaultValue={f.name || ''} onBlur={e => handleUpdate('users', f.id, { name: e.target.value })} className="w-full min-w-0 bg-transparent border-none p-0 text-xs sm:text-sm font-bold text-navy focus:ring-0" />
                        <div className="flex gap-1.5 sm:gap-2 min-w-0 w-full">
-                         <input defaultValue={f.subject} onBlur={e => handleUpdate('users', f.id, { subject: e.target.value })} className="w-[45%] min-w-0 bg-transparent border-none p-0 text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest focus:ring-0" />
+                         <input defaultValue={f.subject || ''} onBlur={e => handleUpdate('users', f.id, { subject: e.target.value })} className="w-[45%] min-w-0 bg-transparent border-none p-0 text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest focus:ring-0" />
                          <span className="text-gray-300 shrink-0">•</span>
-                         <input defaultValue={f.experience} onBlur={e => handleUpdate('users', f.id, { experience: e.target.value })} className="w-[45%] min-w-0 bg-transparent border-none p-0 text-[9px] sm:text-[10px] font-bold text-gold uppercase tracking-widest focus:ring-0" />
+                         <input defaultValue={f.experience || ''} onBlur={e => handleUpdate('users', f.id, { experience: e.target.value })} className="w-[45%] min-w-0 bg-transparent border-none p-0 text-[9px] sm:text-[10px] font-bold text-gold uppercase tracking-widest focus:ring-0" />
                        </div>
                     </div>
                     <div className="flex gap-1 sm:gap-2 shrink-0">
@@ -242,11 +242,11 @@ export default function WebsiteManagement() {
                      <div className="flex items-center justify-between gap-3 min-w-0">
                         <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                            <div className="p-2.5 sm:p-3 bg-navy text-gold rounded-2xl shrink-0">{ICON_OPTIONS[c.icon_name as keyof typeof ICON_OPTIONS] || <BookOpen size={24} />}</div>
-                           <input defaultValue={c.title} onBlur={e => handleUpdate('website_courses', c.id, { title: e.target.value })} className="w-full min-w-0 bg-transparent border-none font-bold text-navy text-base sm:text-lg focus:ring-0 p-0" />
+                           <input defaultValue={c.title || ''} onBlur={e => handleUpdate('website_courses', c.id, { title: e.target.value })} className="w-full min-w-0 bg-transparent border-none font-bold text-navy text-base sm:text-lg focus:ring-0 p-0" />
                         </div>
                         <button onClick={() => handleDelete('website_courses', c.id, c.title)} className="sm:opacity-0 sm:group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all p-2 bg-red-50 rounded-xl shrink-0"><Trash2 size={18} /></button>
                      </div>
-                    <textarea defaultValue={c.description} onBlur={e => handleUpdate('website_courses', c.id, { description: e.target.value })} rows={3} className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm text-gray-500 resize-none focus:ring-gold" />
+                    <textarea defaultValue={c.description || ''} onBlur={e => handleUpdate('website_courses', c.id, { description: e.target.value })} rows={3} className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm text-gray-500 resize-none focus:ring-gold" />
                      <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-gray-50">
                        <div className="flex gap-2">
                           {Object.keys(ICON_OPTIONS).map(icon => (
@@ -299,16 +299,16 @@ export default function WebsiteManagement() {
               <form onSubmit={e => { e.preventDefault(); handleUpdate('users', editingFaculty.id, editingFaculty); setShowEditModal(false) }} className="p-8 space-y-4">
                  <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
-                    <input value={editingFaculty.name} required className="w-full bg-slate-50 border border-gray-100 rounded-xl p-4 text-sm font-bold text-navy" onChange={e => setEditingFaculty({...editingFaculty, name: e.target.value})} />
+                    <input value={editingFaculty.name || ''} required className="w-full bg-slate-50 border border-gray-100 rounded-xl p-4 text-sm font-bold text-navy" onChange={e => setEditingFaculty({...editingFaculty, name: e.target.value})} />
                  </div>
                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Subject</label>
-                       <input value={editingFaculty.subject} className="w-full bg-slate-50 border border-gray-100 rounded-xl p-4 text-sm font-bold text-navy" onChange={e => setEditingFaculty({...editingFaculty, subject: e.target.value})} />
+                       <input value={editingFaculty.subject || ''} className="w-full bg-slate-50 border border-gray-100 rounded-xl p-4 text-sm font-bold text-navy" onChange={e => setEditingFaculty({...editingFaculty, subject: e.target.value})} />
                     </div>
                     <div className="space-y-1.5">
                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Experience</label>
-                       <input value={editingFaculty.experience} className="w-full bg-slate-50 border border-gray-100 rounded-xl p-4 text-sm font-bold text-navy" onChange={e => setEditingFaculty({...editingFaculty, experience: e.target.value})} />
+                       <input value={editingFaculty.experience || ''} className="w-full bg-slate-50 border border-gray-100 rounded-xl p-4 text-sm font-bold text-navy" onChange={e => setEditingFaculty({...editingFaculty, experience: e.target.value})} />
                     </div>
                  </div>
                  <button type="submit" className="w-full bg-navy text-gold py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-navy-light transition-all">Update Profile</button>
