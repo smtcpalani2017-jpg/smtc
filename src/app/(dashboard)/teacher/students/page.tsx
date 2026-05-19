@@ -32,12 +32,45 @@ export default function StudentManagement() {
 
   const loadData = async () => {
     setLoading(true)
-    const [studentsRes, classesRes] = await Promise.all([
-      supabase.from('students').select('*').order('name'),
-      supabase.from('classes').select('class_name')
-    ])
-    setStudents(studentsRes.data || [])
-    setClasses(classesRes.data || [])
+    try {
+      const [classesRes, activeYearRes] = await Promise.all([
+        supabase.from('classes').select('class_name'),
+        supabase.from('academic_years').select('id').eq('status', 'Active').limit(1).maybeSingle()
+      ])
+      
+      setClasses(classesRes.data || [])
+      
+      const activeYear = activeYearRes.data
+      let studentsData: any[] = []
+      
+      if (activeYear) {
+        const { data: records, error } = await supabase
+          .from('student_academic_records')
+          .select('*, students(*)')
+          .eq('academic_year_id', activeYear.id)
+          .eq('student_status', 'Active')
+          .order('created_at', { ascending: false })
+          
+        if (!error && records) {
+          studentsData = records.map((r: any) => ({
+            ...r.students,
+            class: r.class_name,
+            payment_plan: r.payment_plan,
+            monthly_fee: r.monthly_fee,
+            total_year_fee: r.full_year_fee,
+            join_date: r.join_date,
+            student_status: r.student_status
+          })).filter((r: any) => r && r.id)
+        }
+      } else {
+        const { data } = await supabase.from('students').select('*').order('name')
+        studentsData = data || []
+      }
+      
+      setStudents(studentsData)
+    } catch (e) {
+      console.error(e)
+    }
     setLoading(false)
   }
 

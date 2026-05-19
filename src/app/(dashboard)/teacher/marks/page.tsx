@@ -42,10 +42,45 @@ export default function UploadMarksPage() {
   const loadStudents = async () => {
     if (!selectedClass) return
     setLoading(true)
-    const { data } = await supabase.from('students').select('*').eq('class', selectedClass).order('name')
-    setStudents(data || [])
+    
+    // Get active academic year
+    const { data: activeYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('status', 'Active')
+      .limit(1)
+      .maybeSingle()
+
+    let studentsData: any[] = []
+    
+    if (activeYear) {
+      const { data: records, error } = await supabase
+        .from('student_academic_records')
+        .select('*, students(*)')
+        .eq('academic_year_id', activeYear.id)
+        .eq('class_name', selectedClass)
+        .eq('student_status', 'Active')
+        .order('created_at', { ascending: false })
+      
+      if (!error && records) {
+        studentsData = records.map((r: any) => ({
+          ...r.students,
+          class: r.class_name,
+          payment_plan: r.payment_plan,
+          monthly_fee: r.monthly_fee,
+          total_year_fee: r.full_year_fee,
+          join_date: r.join_date,
+          student_status: r.student_status
+        })).filter((r: any) => r && r.id)
+      }
+    } else {
+      const { data } = await supabase.from('students').select('*').eq('class', selectedClass).order('name')
+      studentsData = data || []
+    }
+
+    setStudents(studentsData)
     const initialMarks: Record<string, number> = {}
-    data?.forEach(s => { initialMarks[s.id] = 0 })
+    studentsData.forEach(s => { initialMarks[s.id] = 0 })
     setMarksData(initialMarks)
     setLoading(false)
   }
@@ -67,13 +102,22 @@ export default function UploadMarksPage() {
     if (!testName) return alert('Please enter test name')
     setSaving(true)
     try {
+      // Get active academic year during saving
+      const { data: activeYear } = await supabase
+        .from('academic_years')
+        .select('id')
+        .eq('status', 'Active')
+        .limit(1)
+        .maybeSingle()
+
       const payload = students.map(s => ({
         student_id: s.id,
         subject: subject,
         test_name: testName,
         marks: marksData[s.id] || 0,
         out_of: outOf,
-        created_by: 'Staff'
+        created_by: 'Staff',
+        ...(activeYear ? { academic_year_id: activeYear.id } : {})
       }))
       const { error } = await supabase.from('marks').insert(payload)
       if (error) {

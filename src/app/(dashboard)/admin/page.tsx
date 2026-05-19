@@ -30,17 +30,66 @@ export default function AdminDashboard() {
 
   const loadDashboardData = async () => {
     const today = new Date().toISOString().split('T')[0]
-    const [studentsRes, staffRes, classesRes, attendanceRes] = await Promise.all([
-      supabase.from('students').select('id, name, class, gender, created_at').order('created_at', { ascending: false }).limit(10),
+    
+    // Get active academic year
+    const { data: activeYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('status', 'Active')
+      .limit(1)
+      .maybeSingle()
+
+    let studentsList: any[] = []
+    let recentStudentsList: any[] = []
+
+    if (activeYear) {
+      // Fetch all students for the active year
+      const { data: records } = await supabase
+        .from('student_academic_records')
+        .select('*, students(id, name, gender, created_at)')
+        .eq('academic_year_id', activeYear.id)
+        .eq('student_status', 'Active')
+      
+      if (records) {
+        studentsList = records.map((r: any) => ({
+          ...r.students,
+          class: r.class_name
+        })).filter(s => s && s.id)
+      }
+      
+      // Fetch recent 10 students for the active year
+      const { data: recentRecords } = await supabase
+        .from('student_academic_records')
+        .select('*, students(id, name, class, gender, created_at)')
+        .eq('academic_year_id', activeYear.id)
+        .eq('student_status', 'Active')
+        .order('created_at', { ascending: false })
+        .limit(10)
+      
+      if (recentRecords) {
+        recentStudentsList = recentRecords.map((r: any) => ({
+          ...r.students,
+          class: r.class_name
+        })).filter(s => s && s.id)
+      }
+    } else {
+      // Fallback if no active year exists
+      const [allRes, recentRes] = await Promise.all([
+        supabase.from('students').select('id, name, class, gender, created_at'),
+        supabase.from('students').select('id, name, class, gender, created_at').order('created_at', { ascending: false }).limit(10)
+      ])
+      studentsList = allRes.data || []
+      recentStudentsList = recentRes.data || []
+    }
+
+    const [staffRes, classesRes, attendanceRes] = await Promise.all([
       supabase.from('users').select('id').eq('role', 'staff'),
       supabase.from('classes').select('id'),
       supabase.from('attendance').select('status').eq('date', today),
     ])
 
-    const students = studentsRes.data || []
-    const allStudents = (await supabase.from('students').select('gender')).data || []
-    const boys = allStudents.filter(s => s.gender === 'Male').length
-    const girls = allStudents.filter(s => s.gender === 'Female').length
+    const boys = studentsList.filter(s => s.gender === 'Male').length
+    const girls = studentsList.filter(s => s.gender === 'Female').length
     const attendance = attendanceRes.data || []
     const presentToday = attendance.filter(a => a.status === 'present').length
     const absentToday = attendance.filter(a => a.status === 'absent').length
@@ -48,13 +97,13 @@ export default function AdminDashboard() {
     const attPct = totalAtt > 0 ? Math.round((presentToday / totalAtt) * 100) : 0
 
     setStats({
-      totalStudents: allStudents.length,
+      totalStudents: studentsList.length,
       totalStaff: (staffRes.data || []).length,
       totalClasses: (classesRes.data || []).length,
       todayAttendance: attPct,
       boys, girls, presentToday, absentToday,
     })
-    setRecentStudents(students)
+    setRecentStudents(recentStudentsList)
     setLastUpdated(new Date())
     setLoading(false)
   }

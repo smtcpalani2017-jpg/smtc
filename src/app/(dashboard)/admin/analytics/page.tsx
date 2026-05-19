@@ -32,15 +32,40 @@ export default function AdminAnalytics() {
   const loadAnalytics = async () => {
     setLoading(true)
     
-    // 1. Fetch Students for Real Calculations
-    const { data: students } = await supabase.from('students').select('*')
+    // Get active academic year
+    const { data: activeYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('status', 'Active')
+      .limit(1)
+      .maybeSingle()
+
+    let studentsData: any[] = []
+    if (activeYear) {
+      const { data: records } = await supabase
+        .from('student_academic_records')
+        .select('*, students(*)')
+        .eq('academic_year_id', activeYear.id)
+        .eq('student_status', 'Active')
+      
+      if (records) {
+        studentsData = records.map((r: any) => ({
+          ...r.students,
+          class: r.class_name,
+          join_date: r.join_date
+        })).filter(s => s && s.id)
+      }
+    } else {
+      const { data } = await supabase.from('students').select('*')
+      studentsData = data || []
+    }
     
     // 2. Aggregate Admissions by Month
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     const admissionMap: any = {}
     const classCountMap: any = {}
     
-    students?.forEach(s => {
+    studentsData.forEach(s => {
        // Peak Month Logic
        const date = new Date(s.join_date || s.created_at)
        if (date.getFullYear().toString() === selectedYear) {
@@ -77,7 +102,7 @@ export default function AdminAnalytics() {
         peakMonth: maxMonth,
         topClass: maxClass,
         retention: 94, // Mock calculated retention
-        totalStudents: students?.length || 0
+        totalStudents: studentsData.length
     })
 
     setLoading(false)

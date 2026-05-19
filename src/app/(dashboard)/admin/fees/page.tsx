@@ -31,25 +31,68 @@ export default function AdminFeesPage() {
 
   const loadDashboardData = async () => {
     setLoading(true)
-    const [studentsRes, transRes, classesRes] = await Promise.all([
-        supabase.from('students').select('*'),
-        supabase.from('fee_transactions').select('*').order('created_at', { ascending: false }),
-        supabase.from('classes').select('class_name')
-    ])
     
-    const trans = transRes.data || []
-    const studs = studentsRes.data || []
-    const allClassNames = classesRes.data?.map(c => c.class_name) || []
+    // Get active academic year
+    const { data: activeYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('status', 'Active')
+      .limit(1)
+      .maybeSingle()
 
-    let totalColl = trans.reduce((sum, t) => sum + t.amount_paid, 0)
-    let fullYearCount = studs.filter(s => s.payment_plan === 'Full-Year' && s.fee_status === 'Paid').length
+    let studentsData: any[] = []
+    let transData: any[] = []
+
+    if (activeYear) {
+      // 1. Fetch active student academic records
+      const { data: records } = await supabase
+        .from('student_academic_records')
+        .select('*, students(*)')
+        .eq('academic_year_id', activeYear.id)
+        .eq('student_status', 'Active')
+      
+      if (records) {
+        studentsData = records.map((r: any) => ({
+          ...r.students,
+          class: r.class_name,
+          payment_plan: r.payment_plan,
+          monthly_fee: r.monthly_fee,
+          total_year_fee: r.full_year_fee,
+          join_date: r.join_date,
+          student_status: r.student_status
+        })).filter(s => s && s.id)
+      }
+
+      // 2. Fetch fee transactions for the active academic year
+      const { data: trans } = await supabase
+        .from('fee_transactions')
+        .select('*')
+        .eq('academic_year_id', activeYear.id)
+        .order('created_at', { ascending: false })
+      
+      transData = trans || []
+    } else {
+      // Fallback
+      const [studentsRes, transRes] = await Promise.all([
+        supabase.from('students').select('*'),
+        supabase.from('fee_transactions').select('*').order('created_at', { ascending: false })
+      ])
+      studentsData = studentsRes.data || []
+      transData = transRes.data || []
+    }
+
+    const { data: classesRes } = await supabase.from('classes').select('class_name')
+    const allClassNames = classesRes?.map(c => c.class_name) || []
+
+    let totalColl = transData.reduce((sum, t) => sum + t.amount_paid, 0)
+    let fullYearCount = studentsData.filter(s => s.payment_plan === 'Full-Year' && s.fee_status === 'Paid').length
     const currentMonthStr = new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
-    let monthlyRev = trans.filter(t => t.payment_for_month === currentMonthStr).reduce((sum, t) => sum + t.amount_paid, 0)
+    let monthlyRev = transData.filter(t => t.payment_for_month === currentMonthStr).reduce((sum, t) => sum + t.amount_paid, 0)
 
     let totalPend = 0
     let defaulters = 0
-    studs.forEach(s => {
-      const studentPaid = trans.filter(t => t.student_id === s.id).reduce((sum, t) => sum + t.amount_paid, 0)
+    studentsData.forEach(s => {
+      const studentPaid = transData.filter(t => t.student_id === s.id).reduce((sum, t) => sum + t.amount_paid, 0)
       let expected = s.payment_plan === 'Full-Year' ? (s.total_year_fee || 0) : (s.monthly_fee || 0)
       if (studentPaid < expected) {
         totalPend += (expected - studentPaid)
@@ -64,8 +107,8 @@ export default function AdminFeesPage() {
     allClassNames.forEach(name => { classMap[name] = 0 })
 
     // Fill in values for classes that have revenue
-    studs.forEach(s => {
-      const paid = trans.filter(t => t.student_id === s.id).reduce((sum, t) => sum + t.amount_paid, 0)
+    studentsData.forEach(s => {
+      const paid = transData.filter(t => t.student_id === s.id).reduce((sum, t) => sum + t.amount_paid, 0)
       if (classMap[s.class] !== undefined) {
           classMap[s.class] += paid
       } else {
@@ -74,23 +117,72 @@ export default function AdminFeesPage() {
     })
     
     setClassRevenue(Object.entries(classMap).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value))
-    setTransactions(trans)
+    setTransactions(transData)
     setLoading(false)
   }
 
   const loadClassFees = async (className: string) => {
     setLoading(true)
-    const { data: students } = await supabase.from('students').select('*').eq('class', className).order('name')
-    const { data: trans } = await supabase.from('fee_transactions').select('*').order('created_at', { ascending: false })
+    
+    // Get active academic year
+    const { data: activeYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('status', 'Active')
+      .limit(1)
+      .maybeSingle()
+
+    let studentsData: any[] = []
+    let transData: any[] = []
+
+    if (activeYear) {
+      // 1. Fetch active student academic records for class
+      const { data: records } = await supabase
+        .from('student_academic_records')
+        .select('*, students(*)')
+        .eq('academic_year_id', activeYear.id)
+        .eq('class_name', className)
+        .eq('student_status', 'Active')
+        .order('created_at', { ascending: false })
+      
+      if (records) {
+        studentsData = records.map((r: any) => ({
+          ...r.students,
+          class: r.class_name,
+          payment_plan: r.payment_plan,
+          monthly_fee: r.monthly_fee,
+          total_year_fee: r.full_year_fee,
+          join_date: r.join_date,
+          student_status: r.student_status
+        })).filter(s => s && s.id)
+      }
+
+      // 2. Fetch fee transactions for active academic year
+      const { data: trans } = await supabase
+        .from('fee_transactions')
+        .select('*')
+        .eq('academic_year_id', activeYear.id)
+        .order('created_at', { ascending: false })
+      
+      transData = trans || []
+    } else {
+      // Fallback
+      const [studentsRes, transRes] = await Promise.all([
+        supabase.from('students').select('*').eq('class', className).order('name'),
+        supabase.from('fee_transactions').select('*').order('created_at', { ascending: false })
+      ])
+      studentsData = studentsRes.data || []
+      transData = transRes.data || []
+    }
     
     const currentMonthStr = new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })
     
-    const enriched = (students || []).map(s => {
-       const sTrans = (trans || []).filter(t => t.student_id === s.id)
+    const enriched = studentsData.map(s => {
+       const sTrans = transData.filter(t => t.student_id === s.id)
        const hasPaidCurrentMonth = sTrans.some(t => t.payment_for_month === currentMonthStr)
        const totalPaid = sTrans.reduce((sum, t) => sum + t.amount_paid, 0)
        return { ...s, hasPaidCurrentMonth, totalPaid }
-    })
+     })
     
     setClassStudents(enriched)
     setLoading(false)

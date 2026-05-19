@@ -20,34 +20,81 @@ export default function TeacherDashboard() {
     const loadData = async () => {
       const today = new Date().toISOString().split('T')[0]
 
-      const [studRes, attRes, classRes] = await Promise.all([
-        supabase.from('students').select('id, name, class, created_at').order('created_at', { ascending: false }).limit(5),
+      // 1. Get active academic year
+      const { data: activeYear } = await supabase
+        .from('academic_years')
+        .select('id')
+        .eq('status', 'Active')
+        .limit(1)
+        .maybeSingle()
+
+      let studentsList: any[] = []
+      let recentStudentsList: any[] = []
+
+      if (activeYear) {
+        // Fetch all student records for the active academic year
+        const { data: records } = await supabase
+          .from('student_academic_records')
+          .select('*, students(id, name, created_at)')
+          .eq('academic_year_id', activeYear.id)
+          .eq('student_status', 'Active')
+        
+        if (records) {
+          studentsList = records.map((r: any) => ({
+            ...r.students,
+            class: r.class_name
+          })).filter(s => s && s.id)
+        }
+
+        // Fetch recent 5 student records for the active academic year
+        const { data: recentRecords } = await supabase
+          .from('student_academic_records')
+          .select('*, students(id, name, created_at)')
+          .eq('academic_year_id', activeYear.id)
+          .eq('student_status', 'Active')
+          .order('created_at', { ascending: false })
+          .limit(5)
+        
+        if (recentRecords) {
+          recentStudentsList = recentRecords.map((r: any) => ({
+            ...r.students,
+            class: r.class_name
+          })).filter(s => s && s.id)
+        }
+      } else {
+        // Fallback
+        const [allRes, recentRes] = await Promise.all([
+          supabase.from('students').select('id, name, class, created_at'),
+          supabase.from('students').select('id, name, class, created_at').order('created_at', { ascending: false }).limit(5)
+        ])
+        studentsList = allRes.data || []
+        recentStudentsList = recentRes.data || []
+      }
+
+      const [attRes, classRes] = await Promise.all([
         supabase.from('attendance').select('status').eq('date', today),
         supabase.from('classes').select('class_name'),
       ])
 
-      const students = studRes.data || []
-      const allStudents = (await supabase.from('students').select('id')).data || []
       const att = attRes.data || []
       const present = att.filter((a: { status: string }) => a.status === 'present').length
       const absent = att.filter((a: { status: string }) => a.status === 'absent').length
       const total = present + absent
 
       // Group students by class
-      const allSt = (await supabase.from('students').select('class')).data || []
       const classMap: Record<string, number> = {}
-      allSt.forEach((s: { class: string }) => { classMap[s.class] = (classMap[s.class] || 0) + 1 })
+      studentsList.forEach((s: any) => { classMap[s.class] = (classMap[s.class] || 0) + 1 })
       const classArr = Object.entries(classMap).map(([class_name, count]) => ({ class_name, count }))
 
       setStats({
-        totalStudents: allStudents.length,
+        totalStudents: studentsList.length,
         classCount: classArr.length,
         todayPresent: present,
         todayAbsent: absent,
         todayPct: total > 0 ? Math.round((present / total) * 100) : 0,
         pendingTests: 0,
       })
-      setRecentStudents(students)
+      setRecentStudents(recentStudentsList)
       setClasses(classArr)
       setLoading(false)
     }

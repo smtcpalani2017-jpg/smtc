@@ -28,10 +28,24 @@ export default function AdminAttendanceDashboard() {
     const classNames = classesData?.map(c => c.class_name) || []
     setClasses(classNames)
 
-    const { data: attendanceData } = await supabase
+    // Get active academic year
+    const { data: activeYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('status', 'Active')
+      .limit(1)
+      .maybeSingle()
+
+    let query = supabase
       .from('attendance')
       .select('*, students(name, register_number)')
       .eq('date', selectedDate)
+
+    if (activeYear) {
+      query = query.eq('academic_year_id', activeYear.id)
+    }
+
+    const { data: attendanceData } = await query
 
     const logs = (attendanceData || []).map((r: any) => ({
       id: r.id,

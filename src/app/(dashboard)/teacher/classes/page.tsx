@@ -41,15 +41,35 @@ export default function MyClasses() {
       .select('*')
       .not('class_name', 'is', null)
 
+    // Get active academic year
+    const { data: activeYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('status', 'Active')
+      .limit(1)
+      .maybeSingle()
+
     const classStats = await Promise.all((allAdminClasses || []).map(async (cls) => {
-      const { count } = await supabase
-        .from('students')
-        .select('*', { count: 'exact', head: true })
-        .eq('class', cls.class_name)
+      let count = 0
+      if (activeYear) {
+        const { count: recordCount } = await supabase
+          .from('student_academic_records')
+          .select('*', { count: 'exact', head: true })
+          .eq('academic_year_id', activeYear.id)
+          .eq('class_name', cls.class_name)
+          .eq('student_status', 'Active')
+        count = recordCount || 0
+      } else {
+        const { count: fallbackCount } = await supabase
+          .from('students')
+          .select('*', { count: 'exact', head: true })
+          .eq('class', cls.class_name)
+        count = fallbackCount || 0
+      }
       
       return { 
         name: cls.class_name, 
-        total: count || 0 
+        total: count
       }
     }))
 
@@ -61,11 +81,52 @@ export default function MyClasses() {
     setLoading(true)
     const today = new Date().toISOString().split('T')[0]
     
-    const [studentsRes, attendanceRes, transactionsRes, marksRes] = await Promise.all([
-      supabase.from('students').select('*').eq('class', className).order('name'),
-      supabase.from('attendance').select('student_id, status').eq('class', className).eq('date', today),
-      supabase.from('fee_transactions').select('student_id').eq('payment_for_month', currentMonthStr),
-      supabase.from('marks').select('*, students(name, register_number, class)').eq('students.class', className).order('created_at', { ascending: false })
+    // Get active academic year
+    const { data: activeYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('status', 'Active')
+      .limit(1)
+      .maybeSingle()
+
+    let studentsData: any[] = []
+    
+    if (activeYear) {
+      const { data: records } = await supabase
+        .from('student_academic_records')
+        .select('*, students(*)')
+        .eq('academic_year_id', activeYear.id)
+        .eq('class_name', className)
+        .eq('student_status', 'Active')
+        .order('created_at', { ascending: false })
+      
+      if (records) {
+        studentsData = records.map((r: any) => ({
+          ...r.students,
+          class: r.class_name,
+          payment_plan: r.payment_plan,
+          monthly_fee: r.monthly_fee,
+          total_year_fee: r.full_year_fee,
+          join_date: r.join_date,
+          student_status: r.student_status
+        })).filter(s => s && s.id)
+      }
+    } else {
+      const { data } = await supabase
+        .from('students')
+        .select('*')
+        .eq('class', className)
+        .order('name')
+      studentsData = data || []
+    }
+
+    const studentIds = studentsData.map(s => s.id)
+
+    // Fetch attendance, transactions, marks for these student IDs to ensure we only get their records
+    const [attendanceRes, transactionsRes, marksRes] = await Promise.all([
+      supabase.from('attendance').select('student_id, status').eq('class', className).eq('date', today).in('student_id', studentIds.length > 0 ? studentIds : ['']),
+      supabase.from('fee_transactions').select('student_id').eq('payment_for_month', currentMonthStr).in('student_id', studentIds.length > 0 ? studentIds : ['']),
+      supabase.from('marks').select('*, students(name, register_number, class)').in('student_id', studentIds.length > 0 ? studentIds : ['']).order('created_at', { ascending: false })
     ])
 
     const attMap: Record<string, string> = {}
@@ -85,7 +146,7 @@ export default function MyClasses() {
         groupedMarks[m.test_name].scores.push({ student: m.students.name, regNo: m.students.register_number, mark: m.marks })
     })
 
-    setStudents(studentsRes.data || [])
+    setStudents(studentsData)
     setAttendanceRecords(attMap)
     setPaidMonths(paidMap)
     setTestResults(Object.values(groupedMarks))
@@ -174,12 +235,21 @@ export default function MyClasses() {
     setSavingAttendance(true)
     const today = new Date().toISOString().split('T')[0]
     
+    // Get active academic year
+    const { data: activeYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('status', 'Active')
+      .limit(1)
+      .maybeSingle()
+
     const payload = Object.entries(attendanceRecords).map(([studentId, status]) => ({
       student_id: studentId,
       class: selectedClass,
       date: today,
       status: status,
-      marked_by: 'Teacher'
+      marked_by: 'Teacher',
+      ...(activeYear ? { academic_year_id: activeYear.id } : {})
     }))
 
     const { error } = await supabase.from('attendance').upsert(payload, { onConflict: 'student_id,date' })
@@ -201,9 +271,21 @@ export default function MyClasses() {
 
   const recordPayment = async (student: any) => {
     setActionLoading(student.id + '_fee')
+    
+    // Get active academic year
+    const { data: activeYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('status', 'Active')
+      .limit(1)
+      .maybeSingle()
+
     const { error } = await supabase.from('fee_transactions').insert({
-      student_id: student.id, amount_paid: student.monthly_fee || 0,
-      payment_for_month: currentMonthStr, collected_by: 'Staff'
+      student_id: student.id, 
+      amount_paid: student.monthly_fee || 0,
+      payment_for_month: currentMonthStr, 
+      collected_by: 'Staff',
+      ...(activeYear ? { academic_year_id: activeYear.id } : {})
     })
     if (!error) setPaidMonths(prev => ({ ...prev, [student.id]: true }))
     setActionLoading(null)

@@ -34,14 +34,42 @@ export default function AdminClassManagement() {
 
   const loadData = async () => {
     setLoading(true)
-    const [classesRes, staffRes, studentsRes] = await Promise.all([
+    
+    // Get active academic year
+    const { data: activeYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('status', 'Active')
+      .limit(1)
+      .maybeSingle()
+
+    let studentsList: any[] = []
+    
+    if (activeYear) {
+      const { data: records } = await supabase
+        .from('student_academic_records')
+        .select('*, students(gender)')
+        .eq('academic_year_id', activeYear.id)
+        .eq('student_status', 'Active')
+      
+      if (records) {
+        studentsList = records.map((r: any) => ({
+          class: r.class_name,
+          gender: r.students?.gender
+        }))
+      }
+    } else {
+      const { data } = await supabase.from('students').select('class, gender')
+      studentsList = data || []
+    }
+
+    const [classesRes, staffRes] = await Promise.all([
       supabase.from('classes').select('*, users(name)').order('class_name'),
-      supabase.from('users').select('*').eq('role', 'staff'),
-      supabase.from('students').select('class, gender')
+      supabase.from('users').select('*').eq('role', 'staff')
     ])
 
     const statsMap: any = {}
-    studentsRes.data?.forEach(s => {
+    studentsList.forEach(s => {
         if (!statsMap[s.class]) statsMap[s.class] = { total: 0, boys: 0, girls: 0 }
         statsMap[s.class].total++
         if (s.gender === 'Male') statsMap[s.class].boys++
@@ -60,12 +88,49 @@ export default function AdminClassManagement() {
 
   const loadClassHub = async (className: string) => {
     setLoading(true)
-    const [studentsRes, marksRes] = await Promise.all([
-        supabase.from('students').select('*').eq('class', className).order('name'),
-        supabase.from('marks').select('*, students(name, register_number, class)').eq('students.class', className).order('created_at', { ascending: false })
+    
+    // Get active academic year
+    const { data: activeYear } = await supabase
+      .from('academic_years')
+      .select('id')
+      .eq('status', 'Active')
+      .limit(1)
+      .maybeSingle()
+
+    let studentsData: any[] = []
+    
+    if (activeYear) {
+      const { data: records } = await supabase
+        .from('student_academic_records')
+        .select('*, students(*)')
+        .eq('academic_year_id', activeYear.id)
+        .eq('class_name', className)
+        .eq('student_status', 'Active')
+        .order('created_at', { ascending: false })
+      
+      if (records) {
+        studentsData = records.map((r: any) => ({
+          ...r.students,
+          class: r.class_name,
+          payment_plan: r.payment_plan,
+          monthly_fee: r.monthly_fee,
+          total_year_fee: r.full_year_fee,
+          join_date: r.join_date,
+          student_status: r.student_status
+        })).filter(s => s && s.id)
+      }
+    } else {
+      const { data } = await supabase.from('students').select('*').eq('class', className).order('name')
+      studentsData = data || []
+    }
+
+    const studentIds = studentsData.map(s => s.id)
+
+    const [marksRes] = await Promise.all([
+      supabase.from('marks').select('*, students(name, register_number, class)').in('student_id', studentIds.length > 0 ? studentIds : ['']).order('created_at', { ascending: false })
     ])
 
-    setClassStudents(studentsRes.data || [])
+    setClassStudents(studentsData)
     
     const grouped: any = {}
     marksRes.data?.forEach(m => {
