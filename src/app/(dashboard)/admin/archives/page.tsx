@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Sidebar from '@/components/dashboard/Sidebar'
-import { Archive, Plus, ChevronRight, Users, Calendar, Loader2, X, CheckCircle2, ArrowRight, GraduationCap, Trash2, AlertTriangle, Edit2 } from 'lucide-react'
+import { Archive, Plus, ChevronRight, Users, Calendar, Loader2, X, CheckCircle2, ArrowRight, GraduationCap, Trash2, AlertTriangle, Edit2, Upload, FileSpreadsheet } from 'lucide-react'
+import * as XLSX from 'xlsx'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface AcademicYear { id: string; year_name: string; status: string; start_date: string; end_date: string; created_at: string }
@@ -17,6 +18,7 @@ export default function ArchivesPage() {
   const [showPromotion, setShowPromotion] = useState(false)
   const [selectedYear, setSelectedYear] = useState<AcademicYear | null>(null)
   const [yearStudents, setYearStudents] = useState<StudentRecord[]>([])
+  const [selectedClassFilter, setSelectedClassFilter] = useState<string>('All')
   const [classes, setClasses] = useState<string[]>([])
   const [msg, setMsg] = useState('')
   const [showEditYear, setShowEditYear] = useState(false)
@@ -29,6 +31,11 @@ export default function ArchivesPage() {
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
   const [yearStats, setYearStats] = useState<Record<string, { total: number; active: number; archived: number }>>({})
+
+  const [showOldBatch, setShowOldBatch] = useState(false)
+  const [oldBatchFile, setOldBatchFile] = useState<File | null>(null)
+  const [oldBatchYearId, setOldBatchYearId] = useState('')
+  const [uploadingBatch, setUploadingBatch] = useState(false)
 
   const loadYears = async () => {
     setLoading(true)
@@ -51,6 +58,7 @@ export default function ArchivesPage() {
 
   const loadYearStudents = async (year: AcademicYear) => {
     setSelectedYear(year)
+    setSelectedClassFilter('All')
     setLoading(true)
     const { data } = await supabase
       .from('student_academic_records')
@@ -65,11 +73,132 @@ export default function ArchivesPage() {
 
   const handleCreateYear = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!confirm('This will auto-archive all current students, promote them to the next class, and clear the active dashboard for the new year. Are you sure?')) return
     setSaving(true)
-    const { error } = await supabase.from('academic_years').insert([{ ...yearForm, status: 'Active' }])
-    if (error) alert(error.message)
-    else { setMsg('Academic year created!'); setShowNewYear(false); setYearForm({ year_name: '', start_date: '', end_date: '' }); loadYears(); setTimeout(() => setMsg(''), 3000) }
+    
+    // 1. Get current active year
+    const { data: currentActiveYear } = await supabase.from('academic_years').select('id, year_name').eq('status', 'Active').limit(1).maybeSingle()
+    
+    // 2. Create the new year
+    const { data: newYear, error: newYearError } = await supabase.from('academic_years').insert([{ ...yearForm, status: 'Active' }]).select().single()
+    if (newYearError || !newYear) { alert(newYearError?.message || 'Error creating year'); setSaving(false); return }
+
+    if (currentActiveYear) {
+       // 3. Mark old year as archived
+       await supabase.from('academic_years').update({ status: 'Archived', end_date: new Date().toISOString() }).eq('id', currentActiveYear.id)
+       
+       // 4. Fetch all active students from old year
+       const { data: oldRecords } = await supabase.from('student_academic_records').select('*').eq('academic_year_id', currentActiveYear.id).eq('student_status', 'Active')
+       
+       if (oldRecords && oldRecords.length > 0) {
+          // Archive them in the old year
+          await supabase.from('student_academic_records').update({ student_status: 'Archived' }).eq('academic_year_id', currentActiveYear.id).eq('student_status', 'Active')
+
+          // Calculate promotion
+          const nextClassMap: Record<string, string> = {
+            '6th': '7th', '7th': '8th', '8th': '9th', '9th': '10th', '10th': '11th', '11th': '12th', '12th': 'Alumni'
+          }
+
+          const newRecords = oldRecords.map(r => {
+             let targetClass = nextClassMap[r.class_name] || r.class_name
+             let status = targetClass === 'Alumni' ? 'Completed' : 'Active'
+             return {
+                student_id: r.student_id,
+                academic_year_id: newYear.id,
+                class_name: targetClass,
+                student_status: status,
+                join_date: new Date().toISOString().split('T')[0],
+                payment_plan: r.payment_plan || 'Monthly',
+                monthly_fee: r.monthly_fee || 0,
+                full_year_fee: r.full_year_fee || 0
+             }
+          })
+          
+          await supabase.from('student_academic_records').insert(newRecords)
+
+          // Update base students table class names for active ones
+          const activeNewRecords = newRecords.filter(r => r.student_status === 'Active')
+          for (const r of activeNewRecords) {
+             await supabase.from('students').update({ class: r.class_name }).eq('id', r.student_id)
+          }
+       }
+    }
+    
+    setMsg('✅ New Academic Year Created & Students Promoted!')
+    setShowNewYear(false)
+    setYearForm({ year_name: '', start_date: '', end_date: '' })
+    loadYears()
+    setTimeout(() => setMsg(''), 5000)
     setSaving(false)
+  }
+
+  const handleUploadOldBatch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!oldBatchFile || !oldBatchYearId) return alert('Select year and file')
+    setUploadingBatch(true)
+
+    const reader = new FileReader()
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result
+        const wb = XLSX.read(bstr, { type: 'binary' })
+        const wsname = wb.SheetNames[0]
+        const ws = wb.Sheets[wsname]
+        const data = XLSX.utils.sheet_to_json(ws) as any[]
+
+        if (data.length === 0) { alert('File is empty'); setUploadingBatch(false); return }
+
+        let count = 0
+        for (const row of data) {
+           const name = row['Name'] || row['name']
+           const regNo = row['Reg No'] || row['regNo'] || row['register_number']
+           const cls = row['Class'] || row['class']
+           if (!name || !cls) continue
+
+           let studentId = ''
+           if (regNo) {
+             const { data: existing } = await supabase.from('students').select('id').eq('register_number', regNo).maybeSingle()
+             if (existing) studentId = existing.id
+           }
+           
+           if (!studentId) {
+             const { data: newS } = await supabase.from('students').insert([{
+                name: name,
+                register_number: regNo || `OLD-${Date.now()}-${Math.floor(Math.random()*100)}`,
+                class: cls,
+                gender: row['Gender'] || row['gender'] || 'Male',
+                parent_name: row['Parent'] || '',
+                parent_phone: row['Phone'] || '',
+                join_date: new Date().toISOString()
+             }]).select().single()
+             if (newS) studentId = newS.id
+           }
+
+           if (studentId) {
+             const status = row['Status'] || row['status'] || 'Archived'
+             await supabase.from('student_academic_records').upsert([{
+                student_id: studentId,
+                academic_year_id: oldBatchYearId,
+                class_name: cls,
+                student_status: status,
+                join_date: new Date().toISOString()
+             }], { onConflict: 'student_id,academic_year_id' })
+             count++
+           }
+        }
+        
+        setMsg(`✅ ${count} students imported successfully to selected batch!`)
+        setShowOldBatch(false)
+        setOldBatchFile(null)
+        setOldBatchYearId('')
+        loadYears()
+        setTimeout(() => setMsg(''), 4000)
+      } catch (err) {
+        alert('Error parsing Excel: ' + err)
+      }
+      setUploadingBatch(false)
+    }
+    reader.readAsBinaryString(oldBatchFile)
   }
 
   const handleEditYear = async (e: React.FormEvent) => {
@@ -163,8 +292,28 @@ export default function ArchivesPage() {
     setSaving(false)
   }
 
+  const exportYearStudents = (yearName: string) => {
+    const studentsToExport = selectedClassFilter === 'All' ? yearStudents : yearStudents.filter(s => s.class_name === selectedClassFilter)
+    if (studentsToExport.length === 0) return alert('No students to export')
+    const exportData = studentsToExport.map((r, i) => ({
+       '#': i + 1,
+       'Register Number': r.students?.register_number || '',
+       'Name': r.students?.name || '',
+       'Class': r.class_name,
+       'Gender': r.students?.gender || '',
+       'Parent': r.students?.parent_name || '',
+       'Status': r.student_status
+    }))
+    const ws = XLSX.utils.json_to_sheet(exportData)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Students")
+    XLSX.writeFile(wb, `SMTC_Students_${yearName}.xlsx`)
+  }
+
   const inp = "w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900 transition-all outline-none"
   const lbl = "block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 pl-1"
+
+  const filteredStudents = selectedClassFilter === 'All' ? yearStudents : yearStudents.filter(s => s.class_name === selectedClassFilter)
 
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans">
@@ -181,6 +330,7 @@ export default function ArchivesPage() {
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Year Management & Student Promotion</p>
                 </div>
                 <div className="flex gap-3">
+                  <button onClick={() => setShowOldBatch(true)} className="bg-white text-slate-900 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-slate-200 shadow-sm hover:shadow-lg transition-all"><Upload size={16} />Add Old Batch</button>
                   <button onClick={() => setShowPromotion(true)} className="bg-white text-slate-900 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-slate-200 shadow-sm hover:shadow-lg transition-all"><ArrowRight size={16} />Promote Students</button>
                   <button onClick={() => setShowNewYear(true)} className="bg-slate-900 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl hover:bg-slate-800 transition-all"><Plus size={16} />New Year</button>
                 </div>
@@ -241,15 +391,24 @@ export default function ArchivesPage() {
                   <button onClick={() => { setSelectedYear(null); setYearStudents([]) }} className="p-2 hover:bg-white rounded-2xl transition-all shadow-sm border border-slate-100"><ChevronRight size={20} className="text-slate-900 rotate-180" /></button>
                   <div>
                     <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{selectedYear.year_name}</h1>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{yearStudents.length} Student Records • {selectedYear.status}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{filteredStudents.length} Student Records • {selectedYear.status}</p>
                   </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <select value={selectedClassFilter} onChange={e => setSelectedClassFilter(e.target.value)} className="bg-white text-slate-900 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-slate-200 shadow-sm outline-none cursor-pointer">
+                    <option value="All">All Classes</option>
+                    {Array.from(new Set(yearStudents.map(s => s.class_name))).sort().map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  <button onClick={() => exportYearStudents(selectedYear.year_name)} className="bg-emerald-50 text-emerald-600 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-sm hover:bg-emerald-500 hover:text-white transition-all"><FileSpreadsheet size={16} />Export to Excel</button>
                 </div>
               </header>
 
               {loading ? (
                 <div className="py-32 text-center"><Loader2 className="animate-spin mx-auto text-slate-200" size={48} /></div>
-              ) : yearStudents.length === 0 ? (
-                <div className="py-24 text-center bg-white rounded-[40px] border border-slate-100"><Users size={48} className="mx-auto text-slate-100 mb-4" /><p className="text-slate-400 font-bold text-sm uppercase">No student records for this year</p></div>
+              ) : filteredStudents.length === 0 ? (
+                <div className="py-24 text-center bg-white rounded-[40px] border border-slate-100"><Users size={48} className="mx-auto text-slate-100 mb-4" /><p className="text-slate-400 font-bold text-sm uppercase">No student records match this filter</p></div>
               ) : (
                 <div className="bg-white rounded-[32px] sm:rounded-[48px] border border-slate-100 shadow-xl overflow-hidden">
                   <div className="overflow-x-auto">
@@ -264,7 +423,7 @@ export default function ArchivesPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
-                        {yearStudents.map(r => (
+                        {filteredStudents.map(r => (
                           <tr key={r.id} className="hover:bg-slate-50/50 transition-all">
                             <td className="px-8 py-4">
                               <div className="flex items-center gap-4">
@@ -401,6 +560,40 @@ export default function ArchivesPage() {
                     {saving ? <Loader2 className="animate-spin" size={14} /> : 'Delete'}
                   </button>
                 </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* Old Batch Modal */}
+        <AnimatePresence>
+          {showOldBatch && (
+            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowOldBatch(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" />
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl relative z-[210]">
+                <div className="flex items-center justify-between mb-6"><h2 className="text-xl font-black text-slate-900">Import Historical Batch</h2><button onClick={() => setShowOldBatch(false)} className="p-2 hover:bg-slate-50 rounded-xl"><X size={18} className="text-slate-400" /></button></div>
+                <form onSubmit={handleUploadOldBatch} className="space-y-6">
+                  <div>
+                    <label className={lbl}>Target Academic Year</label>
+                    <select required value={oldBatchYearId} onChange={e => setOldBatchYearId(e.target.value)} className={inp}>
+                      <option value="">Select Year</option>
+                      {years.map(y => <option key={y.id} value={y.id}>{y.year_name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={lbl}>Upload Excel File (.xlsx, .csv)</label>
+                    <div className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-center hover:bg-slate-50 transition-colors relative cursor-pointer">
+                      <FileSpreadsheet size={32} className="mx-auto text-slate-300 mb-3" />
+                      <input type="file" accept=".xlsx, .xls, .csv" required onChange={e => setOldBatchFile(e.target.files?.[0] || null)} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                      <div className="text-xs font-bold text-slate-500">{oldBatchFile ? oldBatchFile.name : 'Click to select or drag file here'}</div>
+                    </div>
+                    <p className="text-[9px] text-slate-400 mt-2 font-bold uppercase">Expected Columns: Name, Reg No, Class, Gender, Parent, Phone, Status</p>
+                  </div>
+                  <button disabled={uploadingBatch} className="w-full bg-slate-900 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl hover:bg-slate-800 disabled:opacity-60 transition-all flex items-center justify-center gap-2">
+                    {uploadingBatch ? <Loader2 className="animate-spin" size={14} /> : <Upload size={14} />}
+                    {uploadingBatch ? 'Importing Students...' : 'Import Students'}
+                  </button>
+                </form>
               </motion.div>
             </div>
           )}
