@@ -22,9 +22,16 @@ export default function FacultyPage() {
         .from('users')
         .select('*')
         .eq('role', 'staff')
+        .not('image_url', 'is', null)
         .order('is_featured', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
-      setFaculty(data || [])
+      
+      // Filter out faculty members who do not have a valid image_url
+      const validFaculty = (data || []).filter(
+        (f: any) => f.image_url && f.image_url.trim() !== ''
+      )
+      
+      setFaculty(validFaculty)
       setLoading(false)
     }
     fetchFaculty()

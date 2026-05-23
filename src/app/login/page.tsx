@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
-import { LogIn, Mail, Lock, Loader2, GraduationCap, AlertCircle, ShieldCheck, UserCircle, ArrowLeft } from 'lucide-react'
+import { LogIn, Mail, Lock, Loader2, GraduationCap, AlertCircle, ShieldCheck, UserCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [role, setRole] = useState<'admin' | 'staff' | null>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const supabase = createClient()
@@ -171,10 +172,17 @@ export default function LoginPage() {
                     <div className="relative group">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-gold transition-colors sm:w-5 sm:h-5" size={18} />
                       <input 
-                        type="password" required placeholder="••••••••"
+                        type={showPassword ? "text" : "password"} required placeholder="••••••••"
                         value={password} onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-gray-50 border-none rounded-xl sm:rounded-2xl px-11 sm:px-12 py-3.5 sm:py-4 text-xs sm:text-sm font-bold text-navy focus:ring-2 focus:ring-gold"
+                        className="w-full bg-gray-50 border-none rounded-xl sm:rounded-2xl pl-11 sm:pl-12 pr-12 py-3.5 sm:py-4 text-xs sm:text-sm font-bold text-navy focus:ring-2 focus:ring-gold"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-navy transition-colors focus:outline-none"
+                      >
+                        {showPassword ? <EyeOff size={18} className="sm:w-5 sm:h-5" /> : <Eye size={18} className="sm:w-5 sm:h-5" />}
+                      </button>
                     </div>
                   </div>
 

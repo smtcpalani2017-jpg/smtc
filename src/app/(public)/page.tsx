@@ -231,12 +231,19 @@ export default function Home() {
         supabase.from('users')
           .select('name, subject, experience, image_url, is_featured')
           .eq('role', 'staff')
+          .not('image_url', 'is', null)
           .order('is_featured', { ascending: false, nullsFirst: false })
           .order('created_at', { ascending: false }),
         supabase.from('website_courses').select('*').eq('is_active', true).order('created_at', { ascending: true }),
         supabase.from('website_results').select('*').eq('is_featured', true).limit(4)
       ])
-      setFaculty(facRes.data || [])
+      
+      // Filter out faculty members who do not have a valid image_url
+      const validFaculty = (facRes.data || []).filter(
+        (f: any) => f.image_url && f.image_url.trim() !== ''
+      )
+      
+      setFaculty(validFaculty)
       setCourses(courRes.data || [])
       setResults(resRes.data || [])
       setLoading(false)

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Sidebar from '@/components/dashboard/Sidebar'
-import { UserPlus, Trash2, Edit2, Key, Users, X, Loader2, Mail, Shield } from 'lucide-react'
+import { UserPlus, Trash2, Edit2, Key, Users, X, Loader2, Mail, Shield, Eye, EyeOff } from 'lucide-react'
 import { addStaffAction, updateStaffAction, deleteStaffAction } from '@/app/actions/staff'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -15,6 +15,7 @@ export default function AdminStaffPage() {
   const supabase = createClient()
   const [staffList, setStaffList] = useState<Staff[]>([])
   const [loading, setLoading] = useState(true)
+  const [showPassword, setShowPassword] = useState(false)
   
   const [showForm, setShowForm] = useState(false)
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null)
@@ -82,6 +83,7 @@ export default function AdminStaffPage() {
     setError('')
     setEditingStaff(staff)
     setForm({ name: staff.name, email: staff.email, password: '' })
+    setShowPassword(false)
     setShowForm(true)
   }
 
@@ -89,6 +91,7 @@ export default function AdminStaffPage() {
     setError('')
     setEditingStaff(null)
     setForm({ name: '', email: '', password: '' })
+    setShowPassword(false)
     setShowForm(true)
   }
 
@@ -280,12 +283,18 @@ export default function AdminStaffPage() {
                   </label>
                   <div className="relative">
                     <input
-                      type="password" required={!editingStaff} value={form.password}
+                      type={showPassword ? "text" : "password"} required={!editingStaff} value={form.password}
                       onChange={e => setForm(prev => ({ ...prev, password: e.target.value }))}
                       placeholder={editingStaff ? 'Leave blank to keep same' : '••••••••'}
-                      className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-slate-900 transition-all"
+                      className="w-full bg-slate-50 border-none rounded-2xl pl-5 pr-12 py-4 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-slate-900 transition-all"
                     />
-                    <Key className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-200" size={18} />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 transition-colors focus:outline-none"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
                   </div>
                 </div>
 
