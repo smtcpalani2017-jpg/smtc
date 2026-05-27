@@ -67,6 +67,7 @@ export default function StudentManagement() {
         studentsData = data || []
       }
       
+      studentsData.sort((a, b) => a.name.localeCompare(b.name))
       setStudents(studentsData)
     } catch (e) {
       console.error(e)

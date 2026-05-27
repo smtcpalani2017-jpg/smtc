@@ -31,6 +31,7 @@ export default function WebsiteManagement() {
   const [faculty, setFaculty] = useState<any[]>([])
   const [courses, setCourses] = useState<any[]>([])
   const [results, setResults] = useState<any[]>([])
+  const [gallery, setGallery] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [savingId, setSavingId] = useState<string | null>(null)
   const [success, setSuccess] = useState('')
@@ -38,6 +39,7 @@ export default function WebsiteManagement() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showCourseModal, setShowCourseModal] = useState(false)
   const [showResultModal, setShowResultModal] = useState(false)
+  const [showGalleryModal, setShowGalleryModal] = useState(false)
   const [editingFaculty, setEditingFaculty] = useState<any>(null)
   const [uploading, setUploading] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<{ table: string, id: string, name: string } | null>(null)
@@ -47,17 +49,28 @@ export default function WebsiteManagement() {
   const [newFaculty, setNewFaculty] = useState({ name: '', email: '', subject: '', experience: '', image_url: '', is_featured: true, password: 'staff123' })
   const [newCourse, setNewCourse] = useState({ title: '', description: '', icon_name: 'BookOpen' })
   const [newResult, setNewResult] = useState<NewResultState>({ student_name: '', exam_name: '', score: '', achievement: '', is_featured: true, image_url: '' })
+  const [pendingGallery, setPendingGallery] = useState<{file: File, preview: string, title: string, description: string}[]>([])
 
   const loadData = async () => {
     setLoading(true)
-    const [facRes, courRes, resRes] = await Promise.all([
+    const [facRes, courRes, resRes, galRes] = await Promise.all([
       supabase.from('users').select('*').eq('role', 'staff').order('created_at', { ascending: false }),
       supabase.from('website_courses').select('*').order('created_at', { ascending: true }),
-      supabase.from('website_results').select('*').order('created_at', { ascending: false })
+      supabase.from('website_results').select('*').order('created_at', { ascending: false }),
+      supabase.storage.from('faculty').download('gallery.json')
     ])
     setFaculty(facRes.data || [])
     setCourses(courRes.data || [])
     setResults(resRes.data || [])
+    
+    let galleryData = []
+    if (galRes.data) {
+      try {
+        const text = await galRes.data.text()
+        galleryData = JSON.parse(text)
+      } catch (e) {}
+    }
+    setGallery(galleryData)
     setLoading(false)
   }
 
@@ -88,6 +101,13 @@ export default function WebsiteManagement() {
       if (deleteTarget.table === 'users') {
         const res = await deleteStaffAction(deleteTarget.id)
         if (!res.success) throw new Error(res.error || 'Failed to delete faculty member.')
+      } else if (deleteTarget.table === 'gallery') {
+        const updatedGallery = gallery.filter(g => g.id !== deleteTarget.id)
+        const { error } = await supabase.storage.from('faculty').upload('gallery.json', JSON.stringify(updatedGallery), {
+          upsert: true,
+          contentType: 'application/json'
+        })
+        if (error) throw new Error(error.message)
       } else {
         const { error } = await supabase.from(deleteTarget.table).delete().eq('id', deleteTarget.id)
         if (error) throw new Error(error.message)
@@ -113,6 +133,7 @@ export default function WebsiteManagement() {
     const { data: { publicUrl } } = supabase.storage.from('faculty').getPublicUrl(fileName)
     if (staffId === 'new') setNewFaculty({ ...newFaculty, image_url: publicUrl })
     else if (staffId === 'newResult') setNewResult({ ...newResult, image_url: publicUrl })
+    else if (staffId === 'newGallery') setNewGallery({ ...newGallery, image_url: publicUrl })
     else if (staffId.startsWith('result_')) await handleUpdate('website_results', staffId.replace('result_', ''), { image_url: publicUrl })
     else await handleUpdate('users', staffId, { image_url: publicUrl })
     setUploading(null)
@@ -139,6 +160,76 @@ export default function WebsiteManagement() {
     setSavingId(null)
   }
 
+  const handleUpdateGallery = async (id: string, updates: any) => {
+    setSavingId(id)
+    const updatedGallery = gallery.map(g => g.id === id ? { ...g, ...updates } : g)
+    const { error } = await supabase.storage.from('faculty').upload('gallery.json', JSON.stringify(updatedGallery), {
+      upsert: true,
+      contentType: 'application/json'
+    })
+    if (!error) {
+      setSuccess('Gallery updated successfully!')
+      setGallery(updatedGallery)
+      setTimeout(() => setSuccess(''), 3000)
+    } else {
+      alert(error.message)
+    }
+    setSavingId(null)
+  }
+
+  const handleGalleryUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pendingGallery.length === 0) return;
+    
+    setUploading('gallery_batch')
+    const newItems = []
+    
+    for (const item of pendingGallery) {
+      const file = item.file
+      const fileName = `${Math.random()}.${file.name.split('.').pop()}`
+      const { error: uploadError } = await supabase.storage.from('faculty').upload(fileName, file)
+      
+      if (!uploadError) {
+        const { data: { publicUrl } } = supabase.storage.from('faculty').getPublicUrl(fileName)
+        newItems.push({
+           id: crypto.randomUUID(),
+           title: item.title,
+           description: item.description,
+           image_url: publicUrl,
+           created_at: new Date().toISOString()
+        })
+      }
+    }
+    
+    if (newItems.length > 0) {
+      const updatedGallery = [...newItems, ...gallery]
+      const { error } = await supabase.storage.from('faculty').upload('gallery.json', JSON.stringify(updatedGallery), {
+        upsert: true,
+        contentType: 'application/json'
+      })
+      if (!error) {
+        setSuccess(`${newItems.length} photos added to gallery!`)
+        setShowGalleryModal(false)
+        setPendingGallery([])
+        setGallery(updatedGallery)
+      } else {
+        alert(error.message)
+      }
+    }
+    setUploading(null)
+  }
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files; if (!files || files.length === 0) return;
+    const newPending = Array.from(files).map((file, i) => ({
+      file,
+      preview: URL.createObjectURL(file),
+      title: `Photo ${gallery.length + pendingGallery.length + i + 1}`,
+      description: ''
+    }));
+    setPendingGallery([...pendingGallery, ...newPending]);
+  }
+
   return (
     <div className="flex min-h-screen bg-[#F8F9FA]">
       <Sidebar role="admin" userName="Admin" userEmail="smtcpalani2017@gmail.com" />
@@ -150,6 +241,7 @@ export default function WebsiteManagement() {
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-3">
              <button onClick={() => setShowResultModal(true)} className="flex items-center space-x-2 bg-[#001F3F] text-[#D4AF37] px-3 sm:px-4 py-2 rounded-xl text-[10px] sm:text-xs font-black uppercase shadow-lg hover:bg-navy-light transition-all"><Trophy size={16} /><span>Add Result</span></button>
+             <button onClick={() => setShowGalleryModal(true)} className="flex items-center space-x-2 bg-[#D4AF37] text-[#001229] px-3 sm:px-4 py-2 rounded-xl text-[10px] sm:text-xs font-black uppercase shadow-lg"><ImageIcon size={16} /><span>Add Photo</span></button>
              <button onClick={() => setShowCourseModal(true)} className="flex items-center space-x-2 bg-[#001F3F] text-[#D4AF37] px-3 sm:px-4 py-2 rounded-xl text-[10px] sm:text-xs font-black uppercase shadow-lg"><Plus size={16} /><span>Add Course</span></button>
              <button onClick={() => setShowAddModal(true)} className="flex items-center space-x-2 bg-[#D4AF37] text-[#001229] px-3 sm:px-4 py-2 rounded-xl text-[10px] sm:text-xs font-black uppercase shadow-lg"><Plus size={16} /><span>Add Faculty</span></button>
           </div>
@@ -262,6 +354,33 @@ export default function WebsiteManagement() {
                ))}
             </div>
           </section>
+
+          {/* GALLERY SECTION */}
+          <section className="space-y-8">
+            <div className="border-l-4 border-gold pl-6">
+               <h2 className="text-2xl font-serif font-bold text-navy">Photo Gallery</h2>
+               <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Manage Website Images</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               {gallery.map((g: any) => (
+                  <div key={g.id} className="bg-white p-4 rounded-[30px] border border-gray-100 space-y-4 hover:border-gold transition-all group relative">
+                     <div className="aspect-video w-full rounded-2xl overflow-hidden bg-gray-50 relative">
+                        {g.image_url ? <img src={g.image_url} className="w-full h-full object-cover" /> : <ImageIcon className="absolute inset-0 m-auto text-gray-200" />}
+                        <button onClick={() => handleDelete('gallery', g.id, g.title)} className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all p-2 bg-white/90 backdrop-blur rounded-xl shadow-lg"><Trash2 size={18} /></button>
+                     </div>
+                     <div className="px-2">
+                        <input defaultValue={g.title || ''} onBlur={e => handleUpdateGallery(g.id, { title: e.target.value })} className="w-full bg-transparent border-none p-0 font-bold text-navy text-lg truncate focus:ring-0" placeholder="Image Title" />
+                        <textarea defaultValue={g.description || ''} onBlur={e => handleUpdateGallery(g.id, { description: e.target.value })} className="w-full bg-transparent border-none p-0 text-xs text-gray-400 mt-1 resize-none focus:ring-0" placeholder="Image Description" rows={2} />
+                     </div>
+                  </div>
+               ))}
+               {gallery.length === 0 && (
+                 <div className="col-span-full py-12 text-center text-gray-400 italic bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+                    No photos in gallery yet.
+                 </div>
+               )}
+            </div>
+          </section>
         </div>
 
         {/* MODALS */}
@@ -355,6 +474,72 @@ export default function WebsiteManagement() {
                  </div>
                  <button type="submit" className="w-full bg-navy text-gold py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-navy-light transition-all">Add to Website</button>
               </form>
+            </div>
+          </div>
+        )}
+
+        {showGalleryModal && (
+          <div className="fixed inset-0 bg-navy/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+              <div className="bg-navy p-6 text-white flex justify-between items-center shrink-0">
+                <h3 className="font-serif font-bold text-xl">Upload Photos</h3>
+                <button onClick={() => { setShowGalleryModal(false); setPendingGallery([]); }}><X /></button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50">
+                <div className="flex justify-center mb-6">
+                    <label className="relative w-full h-32 rounded-2xl overflow-hidden bg-white border-2 border-dashed border-gray-200 flex flex-col items-center justify-center group hover:border-gold transition-all cursor-pointer shadow-sm">
+                       <Upload className="text-gray-300 group-hover:text-gold transition-colors mb-2" size={28} />
+                       <span className="text-sm font-bold text-gray-500 uppercase">Select Photos</span>
+                       <input type="file" multiple accept="image/*" className="hidden" onChange={handleFileSelect} />
+                    </label>
+                </div>
+
+                {pendingGallery.length > 0 && (
+                  <form id="gallery-form" onSubmit={handleGalleryUpload} className="space-y-4">
+                    {pendingGallery.map((item, index) => (
+                      <div key={index} className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm relative">
+                        <img src={item.preview} className="w-full sm:w-24 h-32 sm:h-24 object-cover rounded-xl shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <input 
+                            required 
+                            placeholder="Image Title" 
+                            className="w-full bg-slate-50 border border-gray-100 rounded-lg p-2.5 text-sm font-bold text-navy focus:border-gold focus:ring-1 focus:ring-gold outline-none" 
+                            value={item.title}
+                            onChange={(e) => {
+                              const newP = [...pendingGallery];
+                              newP[index].title = e.target.value;
+                              setPendingGallery(newP);
+                            }}
+                          />
+                          <input 
+                            placeholder="Image Description (Optional)" 
+                            className="w-full bg-slate-50 border border-gray-100 rounded-lg p-2.5 text-sm text-navy focus:border-gold focus:ring-1 focus:ring-gold outline-none" 
+                            value={item.description}
+                            onChange={(e) => {
+                              const newP = [...pendingGallery];
+                              newP[index].description = e.target.value;
+                              setPendingGallery(newP);
+                            }}
+                          />
+                        </div>
+                        <button type="button" onClick={() => setPendingGallery(pendingGallery.filter((_, i) => i !== index))} className="absolute right-3 top-3 bg-red-50 text-red-400 hover:text-red-600 hover:bg-red-100 transition-colors p-1.5 rounded-lg"><Trash2 size={16}/></button>
+                      </div>
+                    ))}
+                  </form>
+                )}
+              </div>
+              
+              <div className="p-6 bg-white border-t border-gray-100 shrink-0">
+                <button 
+                  type="submit" 
+                  form="gallery-form"
+                  disabled={pendingGallery.length === 0 || uploading === 'gallery_batch'} 
+                  className="w-full bg-navy text-gold py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-navy-light transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {uploading === 'gallery_batch' ? <><Loader2 className="animate-spin" size={20}/> Uploading...</> : `Upload ${pendingGallery.length} Photos`}
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import Sidebar from '@/components/dashboard/Sidebar'
-import { Search, Filter, Eye, Trash2, UserPlus, Download, ChevronDown, Calendar, CheckCircle2, XCircle, AlertCircle, Info, Loader2 } from 'lucide-react'
+import { Search, Filter, Eye, Trash2, UserPlus, Download, ChevronDown, Calendar, CheckCircle2, XCircle, AlertCircle, Info, Loader2, IndianRupee, Banknote } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Student {
@@ -23,6 +23,8 @@ export default function AdminStudentsPage() {
   const [selected, setSelected] = useState<Student | null>(null)
   const [attendanceHistory, setAttendanceHistory] = useState<{ date: string; status: string }[]>([])
   const [loadingAttendance, setLoadingAttendance] = useState(false)
+  const [feeHistory, setFeeHistory] = useState<{ amount_paid: number; payment_for_month: string; created_at: string }[]>([])
+  const [loadingFees, setLoadingFees] = useState(false)
   const [classesList, setClassesList] = useState<string[]>(['All'])
 
   const loadStudents = async () => {
@@ -73,6 +75,8 @@ export default function AdminStudentsPage() {
             student_status: r.student_status
           })).filter(r => r && r.id)
 
+          mapped.sort((a, b) => a.name.localeCompare(b.name))
+
           setStudents(mapped)
           setFiltered(mapped)
           setLoading(false)
@@ -83,7 +87,7 @@ export default function AdminStudentsPage() {
       console.log('Using direct students fallback:', e)
     }
 
-    const { data } = await supabase.from('students').select('*').order('created_at', { ascending: false })
+    const { data } = await supabase.from('students').select('*').order('name', { ascending: true })
     setStudents(data || [])
     setFiltered(data || [])
     setLoading(false)
@@ -120,8 +124,31 @@ export default function AdminStudentsPage() {
         setLoadingAttendance(false)
       }
       fetchAttendance()
+
+      const fetchFees = async () => {
+        setLoadingFees(true)
+        try {
+          const { data, error } = await supabase
+            .from('fee_transactions')
+            .select('amount_paid, payment_for_month, created_at')
+            .eq('student_id', selected.id)
+            .order('created_at', { ascending: false })
+          
+          if (!error && data) {
+            setFeeHistory(data)
+          } else {
+            setFeeHistory([])
+          }
+        } catch (e) {
+          console.error('Failed to load student fees:', e)
+          setFeeHistory([])
+        }
+        setLoadingFees(false)
+      }
+      fetchFees()
     } else {
       setAttendanceHistory([])
+      setFeeHistory([])
     }
   }, [selected])
 
@@ -259,6 +286,13 @@ export default function AdminStudentsPage() {
           const presentDays = attendanceHistory.filter(r => r.status === 'present').length
           const attendanceRate = totalClasses > 0 ? Math.round((presentDays / totalClasses) * 100) : 100
 
+          // Fee balance calculations
+          const isYearly = (selected as any).payment_plan === 'Yearly'
+          const totalFee = isYearly ? ((selected as any).total_year_fee || 0) : ((selected as any).monthly_fee || 0)
+          const totalPaid = feeHistory.reduce((sum, f) => sum + (f.amount_paid || 0), 0)
+          const balance = isYearly ? Math.max(totalFee - totalPaid, 0) : 0
+          const isFullyPaid = isYearly ? (totalPaid >= totalFee && totalFee > 0) : false
+
           const formatDate = (dateStr: string) => {
             const parts = dateStr.split('-')
             if (parts.length === 3) {
@@ -339,6 +373,82 @@ export default function AdminStudentsPage() {
                           <span className={item.color || item.className || "text-sm text-[#001F3F] font-semibold text-right"}>{item.val}</span>
                         </div>
                       ))}
+                    </div>
+
+                    {/* Fee Summary & History */}
+                    <div className="space-y-3.5 pt-6 mt-4 border-t border-slate-100">
+                      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                        <IndianRupee size={12} /> Fee Overview
+                      </h4>
+                      {loadingFees ? (
+                        <div className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-2"><Loader2 className="animate-spin" size={12} /> Fetching...</div>
+                      ) : (
+                        <>
+                          {/* Fee Balance Card */}
+                          <div className={`rounded-2xl p-4 border space-y-3 ${
+                            isYearly 
+                              ? (isFullyPaid ? 'bg-emerald-50/70 border-emerald-100' : 'bg-amber-50/70 border-amber-100')
+                              : 'bg-slate-50 border-slate-100'
+                          }`}>
+                            <div className="flex justify-between items-center">
+                              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                {isYearly ? 'Yearly Fee' : 'Monthly Fee'}
+                              </span>
+                              <span className="text-sm font-black text-slate-900">₹{totalFee}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Total Paid</span>
+                              <span className="text-sm font-black text-emerald-600">₹{totalPaid}</span>
+                            </div>
+                            {isYearly && (
+                              <>
+                                <div className="h-px bg-slate-200/60" />
+                                <div className="flex justify-between items-center">
+                                  <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: isFullyPaid ? '#059669' : '#e11d48' }}>
+                                    {isFullyPaid ? '✅ Fully Paid' : 'Balance Due'}
+                                  </span>
+                                  <span className={`text-sm font-black ${isFullyPaid ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                    {isFullyPaid ? '₹0' : `₹${balance}`}
+                                  </span>
+                                </div>
+                                {/* Progress bar */}
+                                {totalFee > 0 && (
+                                  <div className="h-2 w-full bg-white rounded-full overflow-hidden">
+                                    <div 
+                                      className={`h-full transition-all duration-500 rounded-full ${isFullyPaid ? 'bg-emerald-500' : 'bg-amber-500'}`} 
+                                      style={{ width: `${Math.min((totalPaid / totalFee) * 100, 100)}%` }} 
+                                    />
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+
+                          {/* Payment History List */}
+                          {feeHistory.length > 0 && (
+                            <div className="space-y-2">
+                              <h5 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2">Payment Log</h5>
+                              <div className="space-y-1.5 max-h-[140px] overflow-y-auto pr-2 custom-scrollbar">
+                                {feeHistory.map((fee, idx) => (
+                                  <div key={idx} className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-100/80">
+                                    <div>
+                                      <div className="text-[10px] font-black text-slate-700 uppercase tracking-wider">{fee.payment_for_month}</div>
+                                      <div className="text-[9px] font-bold text-slate-400 mt-0.5">{formatDate(fee.created_at)}</div>
+                                    </div>
+                                    <div className="flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-1 rounded-md">
+                                      <span className="text-xs font-black">₹{fee.amount_paid}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {feeHistory.length === 0 && (
+                            <div className="text-[10px] font-bold text-slate-400/70 italic">No fee payments recorded yet.</div>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
 

@@ -17,6 +17,9 @@ export default function MyClasses() {
   const [students, setStudents] = useState<any[]>([])
   const [attendanceRecords, setAttendanceRecords] = useState<Record<string, string>>({})
   const [paidMonths, setPaidMonths] = useState<Record<string, boolean>>({})
+  const [yearlyPaidMap, setYearlyPaidMap] = useState<Record<string, number>>({})
+  const [showPayModal, setShowPayModal] = useState<any | null>(null)
+  const [payAmount, setPayAmount] = useState<string>('')
   const [testResults, setTestResults] = useState<any[]>([])
   const [selectedTest, setSelectedTest] = useState<any | null>(null)
   const [activeTab, setActiveTab] = useState<'mgmt' | 'results'>('mgmt')
@@ -125,15 +128,29 @@ export default function MyClasses() {
     // Fetch attendance, transactions, marks for these student IDs to ensure we only get their records
     const [attendanceRes, transactionsRes, marksRes] = await Promise.all([
       supabase.from('attendance').select('student_id, status').eq('class', className).eq('date', today).in('student_id', studentIds.length > 0 ? studentIds : ['']),
-      supabase.from('fee_transactions').select('student_id').eq('payment_for_month', currentMonthStr).in('student_id', studentIds.length > 0 ? studentIds : ['']),
+      supabase.from('fee_transactions').select('student_id, amount_paid, payment_for_month').in('student_id', studentIds.length > 0 ? studentIds : ['']),
       supabase.from('marks').select('*, students(name, register_number, class)').in('student_id', studentIds.length > 0 ? studentIds : ['']).order('created_at', { ascending: false })
     ])
 
     const attMap: Record<string, string> = {}
+    
+    // Default all students to present
+    studentsData.forEach(s => {
+      attMap[s.id] = 'present'
+    })
+    
+    // Override with saved records if any exist for today
     attendanceRes.data?.forEach(record => { attMap[record.student_id] = record.status })
 
+    // Compute monthly paid map and yearly total paid map
     const paidMap: Record<string, boolean> = {}
-    transactionsRes.data?.forEach(t => { paidMap[t.student_id] = true })
+    const yearlyMap: Record<string, number> = {}
+    transactionsRes.data?.forEach(t => {
+      if (t.payment_for_month === currentMonthStr) {
+        paidMap[t.student_id] = true
+      }
+      yearlyMap[t.student_id] = (yearlyMap[t.student_id] || 0) + (t.amount_paid || 0)
+    })
 
     const groupedMarks: any = {}
     marksRes.data?.forEach(m => {
@@ -149,6 +166,7 @@ export default function MyClasses() {
     setStudents(studentsData)
     setAttendanceRecords(attMap)
     setPaidMonths(paidMap)
+    setYearlyPaidMap(yearlyMap)
     setTestResults(Object.values(groupedMarks))
     setLoading(false)
   }
@@ -168,7 +186,7 @@ export default function MyClasses() {
       cleanPhone = '91' + cleanPhone
     }
     const todayStr = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
-    const text = `Dear Parent,\nYour child *${student.name}* was *ABSENT* for SMTC Tuition class today (${todayStr}). Please ensure their regular attendance.\n\n- SMTC Tuition Academy`
+    const text = `அன்பார்ந்த பெற்றோருக்கு,\nஉங்கள் குழந்தை *${student.name}* இன்று (${todayStr}) SMTC பயிற்சி வகுப்பிற்கு வரவில்லை. தயவுசெய்து தினசரி வகுப்பிற்கு வருவதை உறுதிப்படுத்தவும்.\n\n- SMTC பயிற்சி மையம்`
     return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`
   }
 
@@ -269,7 +287,16 @@ export default function MyClasses() {
     setSavingAttendance(false)
   }
 
-  const recordPayment = async (student: any) => {
+  const openPayModal = (student: any) => {
+    const isYearly = student.payment_plan === 'Yearly'
+    const totalFee = isYearly ? (student.total_year_fee || 0) : (student.monthly_fee || 0)
+    const alreadyPaid = isYearly ? (yearlyPaidMap[student.id] || 0) : 0
+    const remaining = isYearly ? Math.max(totalFee - alreadyPaid, 0) : totalFee
+    setPayAmount(String(remaining))
+    setShowPayModal(student)
+  }
+
+  const recordPayment = async (student: any, amount: number) => {
     setActionLoading(student.id + '_fee')
     
     // Get active academic year
@@ -282,12 +309,18 @@ export default function MyClasses() {
 
     const { error } = await supabase.from('fee_transactions').insert({
       student_id: student.id, 
-      amount_paid: student.monthly_fee || 0,
+      amount_paid: amount,
       payment_for_month: currentMonthStr, 
       collected_by: 'Staff',
       ...(activeYear ? { academic_year_id: activeYear.id } : {})
     })
-    if (!error) setPaidMonths(prev => ({ ...prev, [student.id]: true }))
+    if (!error) {
+      setPaidMonths(prev => ({ ...prev, [student.id]: true }))
+      setYearlyPaidMap(prev => ({ ...prev, [student.id]: (prev[student.id] || 0) + amount }))
+      setShowPayModal(null)
+      setSuccessMsg(`₹${amount} payment recorded for ${student.name}!`)
+      setTimeout(() => setSuccessMsg(''), 3000)
+    }
     setActionLoading(null)
   }
 
@@ -401,7 +434,12 @@ export default function MyClasses() {
                       <tr><td colSpan={3} className="py-24 text-center text-slate-400 font-bold uppercase tracking-widest text-[10px]">No students found in {selectedClass}</td></tr>
                     ) : students.map((s) => {
                       const status = attendanceRecords[s.id]
-                      const isPaid = paidMonths[s.id] || s.fee_status === 'Paid'
+                      const isYearly = s.payment_plan === 'Yearly'
+                      const totalFee = isYearly ? (s.total_year_fee || 0) : (s.monthly_fee || 0)
+                      const yearlyPaid = yearlyPaidMap[s.id] || 0
+                      const yearlyBalance = Math.max(totalFee - yearlyPaid, 0)
+                      const isMonthPaid = paidMonths[s.id] || s.fee_status === 'Paid'
+                      const isFullyPaid = isYearly ? yearlyBalance === 0 && yearlyPaid > 0 : isMonthPaid
                       return (
                         <tr key={s.id} className={`transition-colors ${status === 'absent' ? 'bg-rose-50/20' : 'hover:bg-slate-50/30'}`}>
                           <td className="px-10 py-4">
@@ -432,14 +470,36 @@ export default function MyClasses() {
                              </div>
                           </td>
                           <td className="px-10 py-4 text-right">
-                             {isPaid ? (
-                               <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-600 px-6 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest border border-emerald-100">
-                                  <Check size={14} strokeWidth={4} /> PAID
-                               </div>
+                             {isYearly ? (
+                               // YEARLY fee logic
+                               isFullyPaid ? (
+                                 <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest border border-emerald-100">
+                                    <Check size={14} strokeWidth={4} /> Fully Paid
+                                 </div>
+                               ) : (
+                                 <div className="flex flex-col items-end gap-1.5">
+                                   {yearlyPaid > 0 && (
+                                     <div className="text-[9px] font-bold text-slate-500">
+                                       <span className="text-emerald-600">₹{yearlyPaid}</span> / ₹{totalFee}
+                                       <span className="text-rose-500 ml-1">(Bal: ₹{yearlyBalance})</span>
+                                     </div>
+                                   )}
+                                   <button onClick={() => openPayModal(s)} disabled={actionLoading === s.id + '_fee'} className="bg-amber-50 text-amber-700 px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-amber-500 hover:text-white transition-all border border-amber-200 flex items-center gap-2">
+                                      <Banknote size={14} /> {actionLoading === s.id + '_fee' ? 'Wait' : (yearlyPaid > 0 ? 'Pay More' : 'Collect Fee')}
+                                   </button>
+                                 </div>
+                               )
                              ) : (
-                               <button onClick={() => recordPayment(s)} disabled={actionLoading === s.id + '_fee'} className="bg-rose-50 text-rose-600 px-6 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all border border-rose-100 flex items-center gap-2 ml-auto">
-                                  <Clock size={14} /> {actionLoading === s.id + '_fee' ? 'Wait' : 'Mark Paid'}
-                                </button>
+                               // MONTHLY fee logic
+                               isMonthPaid ? (
+                                 <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest border border-emerald-100">
+                                    <Check size={14} strokeWidth={4} /> Paid
+                                 </div>
+                               ) : (
+                                 <button onClick={() => openPayModal(s)} disabled={actionLoading === s.id + '_fee'} className="bg-rose-50 text-rose-600 px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all border border-rose-100 flex items-center gap-2 ml-auto">
+                                    <Clock size={14} /> {actionLoading === s.id + '_fee' ? 'Wait' : 'Mark Paid'}
+                                 </button>
+                               )
                              )}
                           </td>
                         </tr>
@@ -574,7 +634,7 @@ export default function MyClasses() {
                       </div>
 
                       <div className="bg-white rounded-2xl p-4 border border-slate-100/80 text-left text-xs text-slate-500 font-medium whitespace-pre-line leading-relaxed">
-                        {`Dear Parent,\nYour child *${absentStudentsForAlert[sequenceIndex]?.name}* was *ABSENT* for SMTC Tuition class today. Please ensure their regular attendance.\n\n- SMTC Tuition Academy`}
+                        {`அன்பார்ந்த பெற்றோருக்கு,\nஉங்கள் குழந்தை *${absentStudentsForAlert[sequenceIndex]?.name}* இன்று SMTC பயிற்சி வகுப்பிற்கு வரவில்லை. தயவுசெய்து தினசரி வகுப்பிற்கு வருவதை உறுதிப்படுத்தவும்.\n\n- SMTC பயிற்சி மையம்`}
                       </div>
                       
                       <div className="pt-2 flex gap-3">
@@ -673,6 +733,104 @@ export default function MyClasses() {
               </motion.div>
             </div>
           )}
+        </AnimatePresence>
+
+        {/* Payment Amount Modal */}
+        <AnimatePresence>
+          {showPayModal && (() => {
+            const isYearly = showPayModal.payment_plan === 'Yearly'
+            const totalFee = isYearly ? (showPayModal.total_year_fee || 0) : (showPayModal.monthly_fee || 0)
+            const alreadyPaid = isYearly ? (yearlyPaidMap[showPayModal.id] || 0) : 0
+            const remaining = isYearly ? Math.max(totalFee - alreadyPaid, 0) : totalFee
+
+            return (
+              <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowPayModal(null)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" />
+                <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl relative z-[210]">
+                  
+                  {/* Header */}
+                  <div className="bg-slate-900 p-6 text-white">
+                    <button onClick={() => setShowPayModal(null)} className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-all text-white/70 hover:text-white"><X size={16} /></button>
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-2xl bg-white text-slate-900 flex items-center justify-center text-xl font-black shadow-xl">{showPayModal.name[0]}</div>
+                      <div>
+                        <h3 className="text-lg font-black">{showPayModal.name}</h3>
+                        <div className="text-[9px] font-bold text-white/40 uppercase tracking-widest mt-0.5">
+                          {isYearly ? 'Yearly Plan' : 'Monthly Plan'} • {showPayModal.register_number}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Fee Summary */}
+                  <div className="p-6 space-y-5">
+                    {isYearly && (
+                      <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Year Fee</span>
+                          <span className="text-sm font-black text-slate-900">₹{totalFee}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Already Paid</span>
+                          <span className="text-sm font-black text-emerald-600">₹{alreadyPaid}</span>
+                        </div>
+                        <div className="h-px bg-slate-200" />
+                        <div className="flex justify-between items-center">
+                          <span className="text-[9px] font-black text-rose-500 uppercase tracking-widest">Balance Due</span>
+                          <span className="text-sm font-black text-rose-600">₹{remaining}</span>
+                        </div>
+                        {/* Visual progress */}
+                        {totalFee > 0 && (
+                          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div className="bg-emerald-500 h-full transition-all duration-500 rounded-full" style={{ width: `${(alreadyPaid / totalFee) * 100}%` }} />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {!isYearly && (
+                      <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Monthly Fee</span>
+                          <span className="text-sm font-black text-slate-900">₹{totalFee}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Payment Amount (₹)</label>
+                      <input
+                        type="number"
+                        value={payAmount}
+                        onChange={e => setPayAmount(e.target.value)}
+                        min="1"
+                        max={remaining || totalFee}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-xl font-black text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-center"
+                        placeholder="Enter amount"
+                        autoFocus
+                      />
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        const amt = parseInt(payAmount)
+                        if (!amt || amt <= 0) { alert('Please enter a valid amount'); return }
+                        recordPayment(showPayModal, amt)
+                      }}
+                      disabled={actionLoading === showPayModal.id + '_fee'}
+                      className="w-full bg-emerald-500 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {actionLoading === showPayModal.id + '_fee' ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <><Banknote size={16} /> Record ₹{payAmount || '0'} Payment</>
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )
+          })()}
         </AnimatePresence>
       </main>
     </div>

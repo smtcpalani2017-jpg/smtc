@@ -29,6 +29,7 @@ const Navbar = () => {
     { name: t('nav.courses'), href: '/courses' },
     { name: t('nav.results'), href: '/results' },
     { name: t('nav.faculty'), href: '/faculty' },
+    { name: t('nav.gallery'), href: '/gallery' },
     { name: t('nav.contact'), href: '/contact' },
   ]
 

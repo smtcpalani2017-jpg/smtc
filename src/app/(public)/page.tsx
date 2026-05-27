@@ -6,7 +6,7 @@ import Navbar from '@/components/layout/Navbar'
 import Hero from '@/components/layout/Hero'
 import Stats from '@/components/layout/Stats'
 import Footer from '@/components/layout/Footer'
-import { CheckCircle2, Star, TrendingUp, Users2, BookOpen, Trophy, GraduationCap, ArrowRight, User, Beaker, Dna, Calculator, Globe2, Award, Quote, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CheckCircle2, Star, TrendingUp, Users2, BookOpen, Trophy, GraduationCap, ArrowRight, User, Beaker, Dna, Calculator, Globe2, Award, Quote, ChevronLeft, ChevronRight, ImageIcon } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/utils/supabase/client'
@@ -212,6 +212,7 @@ export default function Home() {
   const [faculty, setFaculty] = useState<any[]>([])
   const [courses, setCourses] = useState<any[]>([])
   const [results, setResults] = useState<any[]>([])
+  const [gallery, setGallery] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
   const { t } = useLanguage()
@@ -227,7 +228,7 @@ export default function Home() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [facRes, courRes, resRes] = await Promise.all([
+      const [facRes, courRes, resRes, galRes] = await Promise.all([
         supabase.from('users')
           .select('name, subject, experience, image_url, is_featured')
           .eq('role', 'staff')
@@ -235,7 +236,8 @@ export default function Home() {
           .order('is_featured', { ascending: false, nullsFirst: false })
           .order('created_at', { ascending: false }),
         supabase.from('website_courses').select('*').eq('is_active', true).order('created_at', { ascending: true }),
-        supabase.from('website_results').select('*').eq('is_featured', true).limit(4)
+        supabase.from('website_results').select('*').eq('is_featured', true).limit(4),
+        supabase.storage.from('faculty').download('gallery.json')
       ])
       
       // Filter out faculty members who do not have a valid image_url
@@ -246,6 +248,16 @@ export default function Home() {
       setFaculty(validFaculty)
       setCourses(courRes.data || [])
       setResults(resRes.data || [])
+
+      let galleryData = []
+      if (galRes.data) {
+        try {
+          const text = await galRes.data.text()
+          galleryData = JSON.parse(text)
+        } catch (e) {}
+      }
+      setGallery(galleryData)
+
       setLoading(false)
     }
     fetchData()
@@ -418,7 +430,7 @@ export default function Home() {
                       <img 
                         src={f.image_url} 
                         alt={f.name} 
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                        className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700" 
                         loading="lazy"
                       />
                     ) : (
@@ -453,6 +465,58 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ===== GALLERY HIGHLIGHTS (MARQUEE) ===== */}
+      {gallery.length > 0 && (
+        <section className="py-24 bg-[#001F3F] text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('/smtc-logo.png')] bg-fixed opacity-[0.03] pointer-events-none" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 mb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+            <div>
+              <h2 className="section-title text-white">Photo Gallery</h2>
+              <p className="text-white/60 mt-2 max-w-xl text-sm leading-relaxed">
+                A glimpse into the life at Sri Murugan Tuition Center. Discover our academic journey and special moments.
+              </p>
+            </div>
+            <Link href="/gallery" className="btn-primary inline-flex items-center space-x-2 text-sm shrink-0 w-fit">
+              <span>View Full Gallery</span><ArrowRight size={18} />
+            </Link>
+          </div>
+
+          <div className="relative w-full overflow-hidden pb-8 group">
+            {/* Left and Right fade gradients for smooth entering/exiting */}
+            {gallery.length > 3 && (
+              <>
+                <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-[#001F3F] to-transparent z-20 pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-[#001F3F] to-transparent z-20 pointer-events-none" />
+              </>
+            )}
+            
+            <motion.div 
+              className={`flex w-max space-x-6 px-6 ${gallery.length <= 3 ? 'mx-auto justify-center' : ''}`}
+              animate={gallery.length > 3 ? { x: ["0%", "-50%"] } : {}}
+              transition={gallery.length > 3 ? { ease: "linear", duration: Math.max(30, gallery.length * 5), repeat: Infinity } : {}}
+            >
+              {(gallery.length > 3 ? [...gallery, ...gallery] : gallery).map((g, idx) => (
+                <div key={`${g.id}-${idx}`} className="w-[280px] sm:w-[320px] md:w-[400px] shrink-0">
+                  <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border-4 border-white/5 hover:border-gold/30 transition-all duration-300 group/item cursor-pointer bg-black/20">
+                    <img 
+                      src={g.image_url} 
+                      alt={g.title} 
+                      className="w-full h-full object-contain group-hover/item:scale-110 transition-transform duration-700"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#001229]/95 via-[#001229]/40 to-transparent" />
+                    <div className="absolute bottom-0 left-0 p-5 sm:p-6 w-full transform translate-y-2 group-hover/item:translate-y-0 transition-transform duration-300">
+                      <h4 className="text-white font-serif font-extrabold text-xl sm:text-2xl mb-1.5 truncate" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.7)' }}>{g.title}</h4>
+                      <p className="text-white/80 text-sm sm:text-base font-medium line-clamp-1" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>{g.description || 'SMTC Moments'}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* ===== TESTIMONIALS (UNIQUE CAROUSEL) ===== */}
       <section className="py-28 bg-academic-white relative overflow-hidden">

@@ -100,12 +100,12 @@ export default function FacultyPage() {
                   className="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-md hover:shadow-2xl hover:shadow-navy/10 hover:-translate-y-2 transition-all duration-500 group flex flex-col"
                 >
                   {/* Image section */}
-                  <div className="relative h-56 sm:h-64 bg-gradient-to-br from-[#001F3F] to-[#001229] overflow-hidden shrink-0">
+                  <div className="relative h-72 sm:h-80 bg-gradient-to-br from-[#001F3F] to-[#001229] overflow-hidden shrink-0">
                     {member.image_url ? (
                       <img
                         src={member.image_url}
                         alt={member.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        className="w-full h-full object-contain object-top group-hover:scale-105 transition-transform duration-700"
                         loading="lazy"
                       />
                     ) : (

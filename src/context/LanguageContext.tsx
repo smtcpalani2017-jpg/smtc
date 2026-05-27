@@ -19,6 +19,7 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.results': 'Results',
     'nav.faculty': 'Faculty',
     'nav.contact': 'Contact',
+    'nav.gallery': 'Gallery',
     'nav.login': 'LOGIN',
 
     // Hero
@@ -118,6 +119,7 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.results': 'முடிவுகள்',
     'nav.faculty': 'ஆசிரியர்கள்',
     'nav.contact': 'தொடர்புக்கு',
+    'nav.gallery': 'புகைப்படங்கள்',
     'nav.login': 'உள்நுழைய',
 
     // Hero

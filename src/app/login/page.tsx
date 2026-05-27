@@ -47,10 +47,15 @@ export default function LoginPage() {
 
     // Role validation
     if (userData.role !== role) {
-      setError(`This account is not registered as ${role}.`)
-      await supabase.auth.signOut()
-      setLoading(false)
-      return
+      // Allow admin to login as staff
+      if (userData.role === 'admin' && role === 'staff') {
+        userData.role = 'staff' // Fake the role so sidebar acts as staff
+      } else {
+        setError(`This account is not registered as ${role}.`)
+        await supabase.auth.signOut()
+        setLoading(false)
+        return
+      }
     }
 
     localStorage.setItem('smtc_user', JSON.stringify(userData))

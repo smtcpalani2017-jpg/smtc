@@ -17,7 +17,7 @@ const Footer = () => {
           <div className="absolute top-10 right-20 w-[400px] h-[400px] bg-gold/5 rounded-full blur-[100px]" />
           <div className="absolute bottom-10 left-20 w-[300px] h-[300px] bg-gold/4 rounded-full blur-[80px]" />
         </div>
-        
+
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -29,7 +29,7 @@ const Footer = () => {
               <span className="text-gold">Academic Excellence</span>
             </h2>
             <p className="text-white/60 text-lg mb-10 max-w-2xl mx-auto">
-              Join thousands of successful students who started their winning streak at SMTC. 
+              Join thousands of successful students who started their winning streak at SMTC.
               Admissions for 2025-26 are now open.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -61,16 +61,16 @@ const Footer = () => {
                 </div>
               </div>
               <p className="text-white/40 text-sm leading-relaxed mb-6">
-                Empowering students through quality education and dedicated mentorship 
+                Empowering students through quality education and dedicated mentorship
                 since 2017. Building tomorrow&apos;s leaders, today.
               </p>
               <div className="flex space-x-3">
                 {[
                   { icon: <Globe size={18} />, label: 'Website' },
                 ].map((social) => (
-                  <a 
+                  <a
                     key={social.label}
-                    href="#" 
+                    href="#"
                     className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/40 hover:bg-gold hover:text-navy transition-all duration-300 hover:-translate-y-1"
                     aria-label={social.label}
                   >
@@ -96,8 +96,8 @@ const Footer = () => {
                   { name: 'Contact Us', href: '/contact' },
                 ].map((link) => (
                   <li key={link.name}>
-                    <Link 
-                      href={link.href} 
+                    <Link
+                      href={link.href}
                       className="text-white/40 hover:text-gold text-sm transition-all duration-300 flex items-center space-x-2 group"
                     >
                       <div className="w-1 h-1 bg-gold/30 rounded-full group-hover:bg-gold group-hover:scale-150 transition-all duration-300" />
@@ -128,19 +128,19 @@ const Footer = () => {
                     <Phone className="text-gold h-4 w-4" />
                   </div>
                   <div className="flex flex-col text-white/50 text-sm space-y-2">
-                    <a 
-                      href="tel:+918526007178" 
-                      className="flex items-center space-x-2 text-white/80 hover:text-gold transition-all duration-300 font-bold hover:translate-x-1 active:scale-95"
-                    >
-                      <Phone size={13} className="text-gold shrink-0 animate-pulse" />
-                      <span>+91 85260 07178</span>
-                    </a>
-                    <a 
-                      href="tel:+916382752224" 
+                    <a
+                      href="tel:+918526007178"
                       className="flex items-center space-x-2 text-white/80 hover:text-gold transition-all duration-300 font-bold hover:translate-x-1 active:scale-95"
                     >
                       <Phone size={13} className="text-gold shrink-0 animate-pulse" />
                       <span>+91 63827 52224</span>
+                    </a>
+                    <a
+                      href="tel:+916382752224"
+                      className="flex items-center space-x-2 text-white/80 hover:text-gold transition-all duration-300 font-bold hover:translate-x-1 active:scale-95"
+                    >
+                      <Phone size={13} className="text-gold shrink-0 animate-pulse" />
+                      <span>+91 85260 07178</span>
                     </a>
                   </div>
                 </li>
@@ -166,14 +166,11 @@ const Footer = () => {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/40">Evening Batch</span>
-                  <span className="text-gold font-semibold">4:30 PM - 7:30 PM</span>
+                  <span className="text-gold font-semibold">5:30 PM - 8:30 PM</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-white/40">Weekend Special</span>
-                  <span className="text-gold font-semibold">9:00 AM - 1:00 PM</span>
-                </div>
+
               </div>
-              <Link 
+              <Link
                 href="/contact"
                 className="block w-full text-center bg-gradient-to-r from-gold to-gold-light text-navy px-6 py-3 rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-gold/20 transition-all duration-300 hover:-translate-y-0.5"
               >

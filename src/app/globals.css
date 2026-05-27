@@ -95,6 +95,10 @@ body {
   border-radius: 2px;
 }
 
+.section-title.text-white {
+  color: #ffffff !important;
+}
+
 .section-title-center::after {
   left: 50%;
   transform: translateX(-50%);
@@ -157,11 +161,18 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
 .animate-float { animation: float 6s ease-in-out infinite; }
 .animate-float-slow { animation: floatSlow 8s ease-in-out infinite; }
 .animate-pulse-glow { animation: pulse-glow 4s ease-in-out infinite; }
 .animate-spin-slow { animation: spin-slow 20s linear infinite; }
 .animate-shimmer { animation: shimmer 3s ease-in-out infinite; }
+.animate-marquee { animation: marquee 25s linear infinite; }
+.animate-marquee:hover { animation-play-state: paused; }
 
 /* ===== PARTICLE EFFECT STYLES ===== */
 .particle {
