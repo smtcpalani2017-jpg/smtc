@@ -133,7 +133,6 @@ export default function WebsiteManagement() {
     const { data: { publicUrl } } = supabase.storage.from('faculty').getPublicUrl(fileName)
     if (staffId === 'new') setNewFaculty({ ...newFaculty, image_url: publicUrl })
     else if (staffId === 'newResult') setNewResult({ ...newResult, image_url: publicUrl })
-    else if (staffId === 'newGallery') setNewGallery({ ...newGallery, image_url: publicUrl })
     else if (staffId.startsWith('result_')) await handleUpdate('website_results', staffId.replace('result_', ''), { image_url: publicUrl })
     else await handleUpdate('users', staffId, { image_url: publicUrl })
     setUploading(null)
@@ -182,7 +181,7 @@ export default function WebsiteManagement() {
     if (pendingGallery.length === 0) return;
     
     setUploading('gallery_batch')
-    const newItems = []
+    const newItems: any[] = []
     
     for (const item of pendingGallery) {
       const file = item.file
