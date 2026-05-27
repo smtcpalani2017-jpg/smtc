@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   title: "SMTC - Sri Murugan Tuition Center | Palani",
   description: "Sri Murugan Tuition Center (SMTC) - Palani's premier institution for NEET, JEE & Board exam coaching. 25+ years of academic excellence with 98% pass rate. Learn • Grow • Success",
   keywords: "SMTC, Sri Murugan Tuition Center, Palani, NEET coaching, JEE coaching, tuition center, Tamil Nadu, Board exam coaching",
+  icons: {
+    icon: "/smtc-logo.png",
+  },
 };
 
 export default function RootLayout({
